@@ -1,0 +1,21 @@
+<idea-plugin>
+    <id>example.kotlin-dynamic-delegation</id>
+
+    <name>Kotlin Compiler Template</name>
+
+    <vendor
+            email="Him188@mamoe.net"
+            url="https://github.com/him188/">
+        Tianyi Guan
+    </vendor>
+
+    <description><![CDATA[
+    PLUGIN_DESCRIPTION PLUGIN_DESCRIPTION PLUGIN_DESCRIPTION PLUGIN_DESCRIPTION PLUGIN_DESCRIPTION
+]]>
+    </description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <idea-version since-build="201.*" until-build="203.*"/>
+</idea-plugin>
