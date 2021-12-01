@@ -2,6 +2,7 @@ package example.kotlin.compiler.plugin.template
 
 import com.google.auto.service.AutoService
 import com.intellij.mock.MockProject
+import example.kotlin.compiler.plugin.template.config.PluginConfigurationImpl
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 

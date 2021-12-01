@@ -1,4 +1,4 @@
-package example.kotlin.compiler.plugin.template
+package example.kotlin.compiler.plugin.template.config
 
 interface IPluginConfiguration {
     companion object {
