@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_PARAMETER")
+
 package me.him188.kotlin.dynamic.delgation
 
 /**

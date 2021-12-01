@@ -1,4 +1,4 @@
-package example.kotlin.compiler.plugin.template
+package example.kotlin.compiler.plugin.template.compiler
 
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 

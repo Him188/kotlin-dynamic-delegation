@@ -1,7 +1,7 @@
-package example.kotlin.compiler.plugin.template
+package example.kotlin.compiler.plugin.template.compiler
 
 import com.google.auto.service.AutoService
-import example.kotlin.compiler.plugin.template.PluginCompilerConfigurationKeys.EXAMPLE
+import example.kotlin.compiler.plugin.template.compiler.PluginCompilerConfigurationKeys.EXAMPLE
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOptionProcessingException

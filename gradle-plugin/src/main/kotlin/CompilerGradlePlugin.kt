@@ -1,7 +1,7 @@
 package me.him188.kotlin.dynamic.delegation
 
-import example.kotlin.compiler.plugin.template.PluginCommandLineProcessor
-import org.example.BuildConfig
+import example.kotlin.compiler.plugin.template.compiler.PluginCommandLineProcessor
+import me.him188.kotlin.dynamic.delegation.build.BuildConfig
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 
 internal fun MyExtension.toSubpluginOptionList(): List<SubpluginOption> {
     return listOf(
-//        SubpluginOption(PluginCompilerConfigurationKeys.EXAMPLE.name, ),
+//        SubpluginOption(PluginCompilerConfig3urationKeys.EXAMPLE.name, ),
     )
 }
 

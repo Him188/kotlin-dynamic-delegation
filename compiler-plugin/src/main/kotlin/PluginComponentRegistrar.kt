@@ -1,8 +1,10 @@
-package example.kotlin.compiler.plugin.template
+package example.kotlin.compiler.plugin.template.compiler
 
 import com.google.auto.service.AutoService
 import com.intellij.mock.MockProject
-import example.kotlin.compiler.plugin.template.config.PluginConfigurationImpl
+import example.kotlin.compiler.plugin.template.compiler.backend.PluginIrGenerationExtension
+import example.kotlin.compiler.plugin.template.compiler.config.PluginConfigurationImpl
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
@@ -19,7 +21,7 @@ open class PluginComponentRegistrar @JvmOverloads constructor(
 
         val ext = actualConfiguration.createPluginConfig()
 
-        TODO()
+        IrGenerationExtension.registerExtension(project, PluginIrGenerationExtension(ext))
     }
 }
 

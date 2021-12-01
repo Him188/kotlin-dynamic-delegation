@@ -29,9 +29,9 @@ gradlePlugin {
 
 buildConfig {
     val project = project(":kotlin-dynamic-delegation-compiler")
-    packageName(project.group.toString())
+    packageName("me.him188.kotlin.dynamic.delegation.build")
     buildConfigField("String", "PLUGIN_ID", "\"me.him188.kotlin-dynamic-delegation\"")
-    buildConfigField("String", "KOTLIN_PLUGIN_GROUP", "\"${project.group}\"")
+    buildConfigField("String", "GROUP_ID", "\"${project.group}\"")
     buildConfigField("String", "ARTIFACT_ID", "\"${project.name}\"")
     buildConfigField(
         "String",
