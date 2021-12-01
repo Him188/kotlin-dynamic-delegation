@@ -22,6 +22,7 @@ private val pluginArtifact = SubpluginArtifact(
     version = BuildConfig.VERSION
 )
 
+@Suppress("unused") // used in build.gradle.kts
 open class CompilerGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun apply(target: Project) {
 //        target.extensions.create("myExtension", MyExtension::class.java)
