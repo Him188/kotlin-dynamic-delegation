@@ -14,4 +14,5 @@ package me.him188.kotlin.dynamic.delgation
  * }
  * ```
  */
-public fun <R> dynamicDelegation(value: () -> R): R = throw NotImplementedError("Implemented as intrinsic")
+public fun <R> dynamicDelegation(value: () -> R): R =
+    throw NotImplementedError("Implemented as intrinsic")
