@@ -8,79 +8,146 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JvmTarget
 import java.io.File
 import java.util.*
+import kotlin.test.assertEquals
 
 internal abstract class AbstractCompilerTest {
     protected open val overrideCompilerConfiguration: CompilerConfiguration? = null
 
-    protected companion object {
+    var ignoredMessages = """
+        w: Language version is automatically inferred to 1.5 when using the old JVM backend. Consider specifying -language-version explicitly, or remove -Xuse-old-backend
+        w: -Xuse-old-backend is deprecated and will be removed in a future release
+    """.trimIndent().let { analyzeKotlinCompilationMessages(it, withIgnorance = false) }
 
-        @Suppress("ObjectPropertyName")
-        const val FILE_SPLITTER = "-------------------------------------"
 
-        sealed class KotlinCompilationTestBuilder {
-            private val kotlinSources = mutableListOf<String>()
-            private val javaSources = mutableListOf<String>()
+    sealed class KotlinCompilationTestBuilder {
+        private val kotlinSources = mutableListOf<String>()
+        private val javaSources = mutableListOf<String>()
 
-            private var expectSuccess = true
-            private var resultHandler: (KotlinCompilation.Result.() -> Unit)? = null
+        private var expectSuccess = true
+        private var resultHandler: (KotlinCompilation.Result.() -> Unit)? = null
 
-            private val compilationActions = mutableListOf<KotlinCompilation.() -> Unit>()
+        private val compilationActions = mutableListOf<KotlinCompilation.() -> Unit>()
 
-            fun javaSource(@Language("java") code: String) {
-                this.javaSources.add(code)
+        fun javaSource(@Language("java") code: String) {
+            this.javaSources.add(code)
+        }
+
+        fun kotlinSource(@Language("kt") code: String) {
+            this.kotlinSources.add(code)
+        }
+
+        fun KotlinCompilation.useOldBackend() {
+            useIR = false
+            useOldBackend = true
+        }
+
+        fun useOldBackend() = compilation { useOldBackend() }
+
+        fun compilation(block: KotlinCompilation.() -> Unit) {
+            compilationActions.add(block)
+        }
+
+        fun expectFailure(block: KotlinCompilation.Result.() -> Unit): FinishConfiguration {
+            expectSuccess = false
+            resultHandler = block
+            return FinishConfiguration
+        }
+
+        fun expectSuccess(block: KotlinCompilation.Result.() -> Unit): FinishConfiguration {
+            expectSuccess = true
+            resultHandler = block
+            return FinishConfiguration
+        }
+
+        fun run() {
+            val builder = this
+            testJvmCompile(
+                builder.kotlinSources.joinToString(separator = FILE_SPLITTER),
+                builder.javaSources.joinToString(separator = FILE_SPLITTER).takeIf { it.isNotBlank() },
+                expectSuccess = builder.expectSuccess,
+                config = {
+                    builder.compilationActions.forEach { it.invoke(this) }
+                }
+            ) {
+                builder.resultHandler?.invoke(this)
             }
+        }
+    }
 
-            fun kotlinSource(@Language("kt") code: String) {
-                this.kotlinSources.add(code)
-            }
+    object FinishConfiguration
 
-            fun KotlinCompilation.useOldBackend() {
-                useIR = false
-                useOldBackend = true
-            }
+    class KotlinJvmCompilationTestBuilder : KotlinCompilationTestBuilder()
 
-            fun useOldBackend() = compilation { useOldBackend() }
+    data class MessageLine(
+        val kind: Kind?,
+        val message: String,
+        val file: String,
+        val location: String,
+    ) {
+        enum class Kind(val short: String) {
+            WARNING("w"),
+            ERROR("e"),
+            ;
 
-            fun compilation(block: KotlinCompilation.() -> Unit) {
-                compilationActions.add(block)
-            }
-
-            fun expectFailure(block: KotlinCompilation.Result.() -> Unit): FinishConfiguration {
-                expectSuccess = false
-                resultHandler = block
-                return FinishConfiguration
-            }
-
-            fun expectSuccess(block: KotlinCompilation.Result.() -> Unit): FinishConfiguration {
-                expectSuccess = true
-                resultHandler = block
-                return FinishConfiguration
-            }
-
-            fun run() {
-                val builder = this
-                testJvmCompile(
-                    builder.kotlinSources.joinToString(separator = FILE_SPLITTER),
-                    builder.javaSources.joinToString(separator = FILE_SPLITTER).takeIf { it.isNotBlank() },
-                    expectSuccess = builder.expectSuccess,
-                    config = {
-                        builder.compilationActions.forEach { it.invoke(this) }
+            companion object {
+                fun fromStringOrNull(string: String): Kind? {
+                    return enumValues<Kind>().find {
+                        string.startsWith(it.short)
                     }
-                ) {
-                    builder.resultHandler?.invoke(this)
                 }
             }
         }
+    }
 
-        object FinishConfiguration
+    class KotlinCompilationMessages(val delegate: List<MessageLine>)
 
-        class KotlinJvmCompilationTestBuilder : KotlinCompilationTestBuilder()
-
-        fun testJvmCompilation(action: KotlinJvmCompilationTestBuilder.() -> FinishConfiguration) {
-            val builder = KotlinJvmCompilationTestBuilder().apply { action() }
-            builder.run()
+    fun KotlinCompilationMessages.assertAllKind(kind: MessageLine.Kind) {
+        for (line in delegate) {
+            if (line.kind != kind) {
+                throw AssertionError("Expect all $kind, but got $line¬")
+            }
         }
+    }
 
+    fun KotlinCompilationMessages.assertSingleError(): MessageLine {
+        delegate.single().run {
+            assertEquals(MessageLine.Kind.ERROR, kind)
+            return this
+        }
+    }
+
+    fun analyzeKotlinCompilationMessages(messages: String, withIgnorance: Boolean = true): KotlinCompilationMessages {
+        val matching = Regex("""([ew]): ([a-zA-Z0-9/.\\\-_+\w ]+)?: \(([0-9]+?, [0-9]+?)\): (.+)""".trimMargin())
+        return matching.findAll(messages)
+            .map { it.destructured }
+            .map { (kind, file, location, message) ->
+                MessageLine(MessageLine.Kind.fromStringOrNull(kind), message, file, location)
+            }
+            .toList()
+            .let {
+                KotlinCompilationMessages(it)
+            }
+    }
+
+    fun KotlinCompilation.Result.analyzeMessages(): KotlinCompilationMessages =
+        analyzeKotlinCompilationMessages(messages)
+
+    // new
+    fun testJvmCompilation(action: KotlinJvmCompilationTestBuilder.() -> FinishConfiguration) {
+        val builder = KotlinJvmCompilationTestBuilder().apply { action() }
+        builder.run()
+    }
+
+    fun KotlinCompilation.Result.withMessages(block: KotlinCompilationMessages.() -> Unit) {
+        return analyzeMessages().run(block)
+    }
+
+
+    companion object {
+        @Suppress("ObjectPropertyName")
+        const val FILE_SPLITTER = "-------------------------------------"
+
+        // legacy
         fun testJvmCompile(
             @Language("kt")
             kt: String,
@@ -96,7 +163,7 @@ internal abstract class AbstractCompilerTest {
                 "import kotlin.test.*",
                 "import me.him188.kotlin.dynamic.delegation.*"
             )
-            val kotlinSources = kt.split(FILE_SPLITTER).mapIndexed { index, source ->
+            val kotlinSources = kt.split(Companion.FILE_SPLITTER).mapIndexed { index, source ->
                 when {
                     source.trim().startsWith("package") -> {
                         SourceFile.kotlin("TestData${index}.kt", run {
@@ -162,4 +229,5 @@ internal abstract class AbstractCompilerTest {
         }
 
     }
+
 }
