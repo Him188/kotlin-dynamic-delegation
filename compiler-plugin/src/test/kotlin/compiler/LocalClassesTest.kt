@@ -3,7 +3,6 @@ package compiler
 import createInstance
 import org.junit.jupiter.api.Test
 import runFunction
-import testJvmCompile
 
 internal class LocalClassesTest : AbstractCompilerTest() {
     @Test

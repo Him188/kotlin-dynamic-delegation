@@ -3,7 +3,6 @@ package compiler
 import createInstance
 import org.junit.jupiter.api.Test
 import runFunction
-import testJvmCompile
 import kotlin.test.assertEquals
 
 internal class InnerClassesTest : AbstractCompilerTest() {

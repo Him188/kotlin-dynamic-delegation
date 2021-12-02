@@ -1,18 +1,10 @@
 @file:Suppress("UNCHECKED_CAST", "unused")
 
-import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.SourceFile
-import example.kotlin.compiler.plugin.template.compiler.PluginComponentRegistrar
-import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
-import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 
@@ -172,133 +164,6 @@ fun Class<*>.assertNoFunction(
         throw AssertionError("Class '${this.name}' does has method $name(${args.joinToString { it.canonicalName }})${returnType.canonicalName}")
 }
 
-fun compile(
-    @Language("kt")
-    source: String,
-    ir: Boolean,
-    jvmTarget: JvmTarget = JvmTarget.JVM_1_8,
-    overrideCompilerConfiguration: CompilerConfiguration? = null,
-    config: KotlinCompilation.() -> Unit = {},
-) = compile(
-    source,
-    null,
-    jvmTarget,
-    overrideCompilerConfiguration = overrideCompilerConfiguration,
-    config = config
-)
-
-@Suppress("ObjectPropertyName")
-const val FILE_SPLITTER = "-------------------------------------"
-
-fun compile(
-    @Language("kt")
-    sources: String,
-    @Language("java")
-    java: String? = null,
-    jvmTarget: JvmTarget = JvmTarget.JVM_1_8,
-    overrideCompilerConfiguration: CompilerConfiguration? = null,
-    config: KotlinCompilation.() -> Unit = {},
-): KotlinCompilation.Result {
-    val intrinsicImports = listOf(
-        "import kotlin.test.*",
-        "import me.him188.kotlin.dynamic.delegation.*"
-    )
-
-    val kotlinSources = sources.split(FILE_SPLITTER).mapIndexed { index, source ->
-        when {
-            source.trim().startsWith("package") -> {
-                SourceFile.kotlin("TestData${index}.kt", run {
-                    source.trimIndent().lines().mapTo(LinkedList()) { it }
-                        .apply { addAll(1, intrinsicImports) }
-                        .joinToString("\n")
-                })
-            }
-            source.trim().startsWith("@file:") -> {
-                SourceFile.kotlin("TestData${index}.kt", run {
-                    source.trim().trimIndent().lines().mapTo(LinkedList()) { it }
-                        .apply { addAll(1, intrinsicImports) }
-                        .joinToString("\n")
-                })
-            }
-            else -> {
-                SourceFile.kotlin(
-                    name = "TestData${index}.kt",
-                    contents = "${intrinsicImports.joinToString("\n")}\n${source.trimIndent()}"
-                )
-            }
-        }
-    }
-
-
-    return KotlinCompilation().apply {
-        this.sources = listOfNotNull(
-            *kotlinSources.toTypedArray(),
-            java?.let { javaSource ->
-                SourceFile.java(
-                    Regex("""class\s*(.*?)\s*\{""").find(javaSource)!!.groupValues[1].let { "$it.java" },
-                    javaSource
-                )
-            }
-        )
-
-        compilerPlugins = listOf(PluginComponentRegistrar(overrideCompilerConfiguration))
-        verbose = false
-
-        this.jvmTarget = jvmTarget.description
-
-        workingDir = File("testCompileOutput").apply {
-            this.walk().forEach { it.delete() }
-            mkdir()
-        }
-
-        useIR = true
-        useOldBackend = false
-
-        inheritClassPath = true
-        messageOutputStream = System.out
-
-        config()
-    }.compile().also { result ->
-        assert(result.exitCode == KotlinCompilation.ExitCode.OK) {
-            "Test data compilation failed."
-        }
-    }
-}
-
-
-fun testIrCompile(
-    @Language("kt")
-    kt: String,
-    @Language("java")
-    java: String? = null,
-    jvmTarget: JvmTarget = JvmTarget.JVM_1_8,
-    overrideCompilerConfiguration: CompilerConfiguration? = null,
-    config: KotlinCompilation.() -> Unit = {},
-    block: KotlinCompilation.Result.() -> Unit = {},
-) = testJvmCompile(kt, java, jvmTarget, overrideCompilerConfiguration, config, block)
-
-
-fun testJvmCompile(
-    @Language("kt")
-    kt: String,
-    @Language("java")
-    java: String? = null,
-    jvmTarget: JvmTarget = JvmTarget.JVM_1_8,
-    overrideCompilerConfiguration: CompilerConfiguration? = null,
-    config: KotlinCompilation.() -> Unit = {},
-    block: KotlinCompilation.Result.() -> Unit = {},
-) {
-    val result =
-        compile(
-            kt,
-            java,
-            jvmTarget,
-            overrideCompilerConfiguration = overrideCompilerConfiguration,
-            config = config
-        )
-
-    block(result)
-}
 
 
 @SinceKotlin("1.1")

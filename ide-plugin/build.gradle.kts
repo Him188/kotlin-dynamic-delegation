@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
 
 plugins {
-    id("org.jetbrains.intellij") version "1.0"
+    id("org.jetbrains.intellij") version "1.3.0"
     kotlin("jvm")
     kotlin("plugin.serialization")
 
