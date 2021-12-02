@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.backend.common.ClassLoweringPass
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.ir.copyTo
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.runOnFilePostfix
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
@@ -137,7 +138,7 @@ class DynamicDelegationLoweringPass(
             visibility = DescriptorVisibilities.PRIVATE
         }.run wrapper@{
             parent = field.parent
-            dispatchReceiverParameter = field.parentAsClass.thisReceiver
+            dispatchReceiverParameter = field.parentAsClass.thisReceiver?.copyTo(this)
             val (expr, helperField) = pluginContext.wrapperExpressionMapper.map(symbol, extractActualCall())
             body = pluginContext.createIrBuilder(symbol).irExprBody(expr)
 
@@ -211,7 +212,10 @@ class WrapperExpressionMapper(
                 }
 
                 // TODO: 02/12/2021 how about local functions? it should be a variable instead.
-                MapResult(irCall(invoke, irGetField(irGetObject(ownerSymbol.owner.parentAsClass.symbol), field)), field)
+                MapResult(
+                    irCall(invoke, irGetField(irGet(ownerSymbol.owner.dispatchReceiverParameter!!), field)),
+                    field
+                )
             }
         }
     }
@@ -256,7 +260,7 @@ fun IrSimpleFunction.findResponsibleDelegation(delegations: List<DynamicDelegati
     return result
 }
 
-fun IrBuilderWithScope.irCall(callee: IrSimpleFunctionSymbol, dispatchReceiver: IrExpression): IrCall =
+fun IrBuilderWithScope.irCall(callee: IrSimpleFunctionSymbol, dispatchReceiver: IrExpression?): IrCall =
     irCall(callee, callee.owner.returnType).apply {
         this.dispatchReceiver = dispatchReceiver
     }
@@ -282,12 +286,10 @@ class DynamicExtensionClassTransformer(
             declaration.body = context.createIrBuilder(declaration.symbol).run {
                 val delegateInstance = irCall(
                     delegation.wrapper.function.symbol,
-                    irGetObject(declaration.parentAsClass.symbol)
+                    dispatchReceiver = declaration.dispatchReceiverParameter?.let { irGet(it) }
                 )
 
-                irBlockBody {
-                    +irReturn(irCall(delegateCall.symbol, delegateInstance))
-                }
+                irExprBody(irCall(delegateCall.symbol, dispatchReceiver = delegateInstance))
             }
         }
         return super.visitDeclaration(declaration)
