@@ -7,7 +7,7 @@ import runFunction
 import testJvmCompile
 import kotlin.test.assertEquals
 
-internal class DynamicDelegationWithSameTypeForTopLevelObjectTest : AbstractCompilerTest() {
+internal class TopLevelObjectTest : AbstractCompilerTest() {
     @Test
     fun `by lambda`() = testJvmCompile(
         """
@@ -21,6 +21,31 @@ internal class DynamicDelegationWithSameTypeForTopLevelObjectTest : AbstractComp
             fun getInstanceFromOtherPlaces():TestClass  {
                 val v = called++
                 return object : TestClass {
+                    override fun getResult(): Int = v
+                }
+            }
+        """
+    ) {
+        classLoader.loadClass("TestObject").getDeclaredField("INSTANCE").get(null).run {
+            assertEquals(0, runFunction<Int>("getResult"))
+            assertEquals(1, runFunction<Int>("getResult"))
+        }
+    }
+
+    @Test
+    fun `by lambda with derived type`() = testJvmCompile(
+        """
+            interface TestClass {
+                fun getResult(): Int
+            }
+            interface TestClass2 : TestClass
+
+            object TestObject : TestClass by (dynamicDelegation { getInstanceFromOtherPlaces() })
+    
+            var called = 0
+            fun getInstanceFromOtherPlaces():TestClass2  {
+                val v = called++
+                return object : TestClass2 {
                     override fun getResult(): Int = v
                 }
             }
