@@ -18,8 +18,11 @@ internal class BasicsTest : AbstractCompilerTest() {
             object TestObject : TestClass by (dynamicDelegation { getInstanceFromOtherPlaces() })
     
             var called = 0
-            fun getInstanceFromOtherPlaces() = object : TestClass {
-                override fun getResult(): Int = called++
+            fun getInstanceFromOtherPlaces():TestClass  {
+                val v = called++
+                return object : TestClass {
+                    override fun getResult(): Int = v
+                }
             }
         """
     ) {
