@@ -13,16 +13,14 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.assertCast
 import org.jetbrains.kotlin.ir.builders.*
+import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.util.getSimpleFunction
-import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.statements
-import org.jetbrains.kotlin.ir.util.transformDeclarationsFlat
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -34,10 +32,18 @@ class PluginIrGenerationExtension(
 ) : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         for (file in moduleFragment.files) {
-            DynamicDelegationLoweringPass(pluginContext, ext).runOnFilePostfix(file)
+            DynamicDelegationLoweringPass(PluginGenerationContext(pluginContext, ext)).runOnFilePostfix(file)
             RemoveDelegateFieldInitializer(pluginContext, ext).runOnFilePostfix(file)
         }
     }
+}
+
+data class PluginGenerationContext(
+    val context: IrPluginContext,
+    val ext: PluginConfiguration,
+    val wrapperExpressionMapper: WrapperExpressionMapper = WrapperExpressionMapper(context, ext),
+) : IrPluginContext by context {
+
 }
 
 internal fun ClassLoweringPass.runOnFileInOrder(irFile: IrFile) {
@@ -88,11 +94,10 @@ class RemoveDelegateFieldInitializer(
 }
 
 class DynamicDelegationLoweringPass(
-    private val context: IrPluginContext,
-    private val ext: PluginConfiguration,
+    private val pluginContext: PluginGenerationContext,
 ) : ClassLoweringPass {
     override fun lower(irClass: IrClass) {
-        val dynamicDelegationSymbols = context.referenceFunctions(DynamicDelegationSymbols.DEFAULT)
+        val dynamicDelegationSymbols = pluginContext.context.referenceFunctions(DynamicDelegationSymbols.DEFAULT)
 
         val delegateFields =
             irClass.declarations
@@ -103,16 +108,22 @@ class DynamicDelegationLoweringPass(
                 }
 
         for ((_, function) in delegateFields) {
-            irClass.declarations.add(function)
+            for (declaration in function.declarations()) {
+                irClass.declarations.add(declaration)
+            }
         }
 
-        irClass.transform(DynamicExtensionClassTransformer(context, delegateFields), null)
+        irClass.transform(DynamicExtensionClassTransformer(pluginContext, delegateFields), null)
     }
 
-    private fun generateDynamicDelegationWrapper(field: IrField): IrSimpleFunction {
+    /**
+     * The wrapper returns the delegated instance
+     */
+    private fun generateDynamicDelegationWrapper(field: IrField): DynamicDelegationWrapper {
         fun extractActualCall(): IrExpression {
             // initializer
-            return field.initializer!!.expression.assertCast<IrCall>().getValueArgument(0)!!
+            return field.initializer?.expression?.assertCast<IrCall>()?.getValueArgument(0)
+                ?: error("Could not find an initializer for DELEGATE field '${field.render()}'.")
         }
 
         return IrFactoryImpl.buildFun {
@@ -124,16 +135,85 @@ class DynamicDelegationLoweringPass(
             returnType = field.type
 
             visibility = DescriptorVisibilities.PRIVATE
-        }.apply wrapper@{
+        }.run wrapper@{
             parent = field.parent
             dispatchReceiverParameter = field.parentAsClass.thisReceiver
-            body = context.createIrBuilder(symbol).run {
-                val invoke =
-                    this@DynamicDelegationLoweringPass.context.symbols.functionN(0).getSimpleFunction("invoke")!!
-                irExprBody(irCall(invoke, extractActualCall().assertCast<IrFunctionExpression>()))
+            val (expr, helperField) = pluginContext.wrapperExpressionMapper.map(symbol, extractActualCall())
+            body = pluginContext.createIrBuilder(symbol).irExprBody(expr)
+
+            DynamicDelegationWrapper(this, helperField)
+        }
+    }
+}
+
+class DynamicDelegationWrapper(
+    val function: IrSimpleFunction,
+    val helperField: IrField?,
+) {
+    fun declarations(): Sequence<IrDeclaration> = sequenceOf(function, helperField).filterNotNull()
+}
+
+/**
+ * Maps the argument of 'dynamicDelegation' into a call for the wrapper function body.
+ */
+class WrapperExpressionMapper(
+    private val context: IrPluginContext,
+    private val ext: PluginConfiguration,
+) {
+    val pluginContext get() = context
+
+    val invoke =
+        context.symbols.functionN(0).getSimpleFunction("invoke")!!
+
+    data class MapResult(
+        val expression: IrExpression,
+        val helperField: IrField?,
+    )
+
+    fun map(ownerSymbol: IrSimpleFunctionSymbol, argumentExpression: IrExpression): MapResult {
+        fun IrBuilderWithScope.irGetProperty(
+            property: IrPropertyReference
+        ): IrExpression {
+            property.getter?.let { getter -> return irCall(getter) }
+            property.field?.let { field ->
+                return irGetField(property.extensionReceiver ?: property.dispatchReceiver, field.owner)
             }
+            error("Could not find a valid getter or backing field for property ${property.render()}")
         }
 
+        return context.createIrBuilder(ownerSymbol).run {
+            // optimizations
+            val optimized = when (argumentExpression) {
+                is IrFunctionExpression -> irCall(invoke, argumentExpression) // { getInstanceFromOtherPlaces() }
+                is IrFunctionReference -> irCall(argumentExpression.symbol) // ::getInstanceFromOtherPlaces
+                is IrPropertyReference -> irGetProperty(argumentExpression) // ::property  // with getter/backingField
+                is IrBlock -> irCall(invoke, argumentExpression) // TestObject::getInstanceFromOtherPlaces
+                else -> null
+            }
+            if (optimized != null) MapResult(optimized, null)
+            else {
+                // Calling some other expressions which can't be optimized, for example, a property whose type is () -> T
+                // We should introduce a field
+
+
+                val field = context.irFactory.buildField {
+                    startOffset = ownerSymbol.owner.startOffset
+                    endOffset = ownerSymbol.owner.endOffset
+                    name = Name.identifier(ownerSymbol.owner.name.asString() + "\$wrapper")
+                    type = argumentExpression.type
+                    origin = DYNAMIC_DELEGATION_WRAPPER
+                    visibility = DescriptorVisibilities.PRIVATE
+                }.apply {
+                    parent = ownerSymbol.owner.parentAsClass
+                    initializer = pluginContext.createIrBuilder(symbol).run {
+                        irExprBody(argumentExpression)
+                    }
+                }
+
+                // TODO: 02/12/2021 how about local functions? it should be a variable instead.
+                MapResult(irCall(invoke, irGetField(irGetObject(ownerSymbol.owner.parentAsClass.symbol), field)), field)
+            }
+        }
     }
 }
 
@@ -149,7 +229,7 @@ internal fun IrPluginContext.createIrBuilder(
 
 data class DynamicDelegation(
     val field: IrField,
-    val wrapper: IrSimpleFunction,
+    val wrapper: DynamicDelegationWrapper,
 )
 
 fun IrSimpleFunction.findResponsibleDelegation(delegations: List<DynamicDelegation>): DynamicDelegation? {
@@ -183,7 +263,7 @@ fun IrBuilderWithScope.irCall(callee: IrSimpleFunctionSymbol, dispatchReceiver: 
 
 
 class DynamicExtensionClassTransformer(
-    private val context: IrPluginContext,
+    private val context: PluginGenerationContext,
     private val delegations: List<DynamicDelegation>
 ) : IrElementTransformerVoidWithContext() {
     override fun visitExpression(expression: IrExpression): IrExpression {
@@ -201,7 +281,7 @@ class DynamicExtensionClassTransformer(
 
             declaration.body = context.createIrBuilder(declaration.symbol).run {
                 val delegateInstance = irCall(
-                    delegation.wrapper.symbol,
+                    delegation.wrapper.function.symbol,
                     irGetObject(declaration.parentAsClass.symbol)
                 )
 
