@@ -39,7 +39,10 @@ class Test {
 }
 ```
 
-Everytime `fun getResult(): Int` in `TestObject` is called, it calls the lambda `{ getInstanceFromOtherPlaces() }` to
-get a `TestClass` instance.
+The compiler generates `TestObject.getResult()` as follows:
 
-**This eliminates your work against delegating the class manually.** 
+```kotlin
+override fun getResult(): Int = getInstanceFromOtherPlaces().getResult()
+```
+
+So the delegated instance can be changed. 
