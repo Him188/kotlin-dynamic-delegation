@@ -17,7 +17,7 @@ data class DynamicDelegation(
     val wrapper: DynamicDelegationWrapper,
 )
 
-object DynamicDelegationSymbols {
+object DynamicDelegationFqNames {
     val DEFAULT = FqName("me.him188.kotlin.dynamic.delegation.dynamicDelegation")
 }
 

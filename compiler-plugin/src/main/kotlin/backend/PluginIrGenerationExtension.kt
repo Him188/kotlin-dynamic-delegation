@@ -43,7 +43,7 @@ class RemoveDelegateFieldInitializerPass(
     private val ext: PluginConfiguration,
 ) : ClassLoweringPass {
     override fun lower(irClass: IrClass) {
-        val symbols = context.referenceFunctions(DynamicDelegationSymbols.DEFAULT)
+        val symbols = context.referenceFunctions(DynamicDelegationFqNames.DEFAULT)
         irClass.transformDeclarationsFlat {
             if (it is IrField && it.isDynamicDelegationField(symbols)) {
                 it.initializer = null // not removing the field for compatibility
@@ -57,7 +57,7 @@ class DynamicDelegationLoweringPass(
     private val pluginContext: PluginGenerationContext,
 ) : ClassLoweringPass {
     override fun lower(irClass: IrClass) {
-        val dynamicDelegationSymbols = pluginContext.context.referenceFunctions(DynamicDelegationSymbols.DEFAULT)
+        val dynamicDelegationSymbols = pluginContext.context.referenceFunctions(DynamicDelegationFqNames.DEFAULT)
 
         val delegateFields =
             irClass.fields
