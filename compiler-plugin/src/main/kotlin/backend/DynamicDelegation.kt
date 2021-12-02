@@ -18,7 +18,7 @@ data class DynamicDelegation(
 )
 
 object DynamicDelegationSymbols {
-    val DEFAULT = FqName("me.him188.kotlin.dynamic.delgation.dynamicDelegation")
+    val DEFAULT = FqName("me.him188.kotlin.dynamic.delegation.dynamicDelegation")
 }
 
 fun IrField.isDynamicDelegationField(dynamicDelegationSymbols: Collection<IrSymbol>): Boolean {

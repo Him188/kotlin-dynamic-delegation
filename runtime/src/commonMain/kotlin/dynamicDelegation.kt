@@ -1,6 +1,6 @@
 @file:Suppress("UNUSED_PARAMETER")
 
-package me.him188.kotlin.dynamic.delgation
+package me.him188.kotlin.dynamic.delegation
 
 /**
  * Creates a dynamic delegation.

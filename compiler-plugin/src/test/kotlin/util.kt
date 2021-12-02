@@ -201,7 +201,7 @@ fun compile(
 ): KotlinCompilation.Result {
     val intrinsicImports = listOf(
         "import kotlin.test.*",
-        "import me.him188.kotlin.dynamic.delgation.*"
+        "import me.him188.kotlin.dynamic.delegation.*"
     )
 
     val kotlinSources = sources.split(FILE_SPLITTER).mapIndexed { index, source ->
