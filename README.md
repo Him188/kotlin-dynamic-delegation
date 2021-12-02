@@ -1,6 +1,8 @@
 # kotlin-dynamic-delegation
 
-Kotlin compiler plugin that allows class delegation to be dynamic like property delegations
+Kotlin compiler plugin that allows class delegation to be dynamic like property delegations.
+
+The plugin is working in progress.
 
 ## What does this plugin do
 
@@ -23,7 +25,16 @@ var called = 0
 fun getInstanceFromOtherPlaces(): TestClass {
     val v = called++
     return object : TestClass {
-        override fun getResult(): Int = v
+        override fun getResult(): Int = v // static value here!
+    }
+}
+
+class Test {
+    @Test
+    fun test() {
+        assertEquals(0, TestObject.getResult())
+        assertEquals(1, TestObject.getResult())
+        assertEquals(2, TestObject.getResult())
     }
 }
 ```
