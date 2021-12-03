@@ -69,6 +69,7 @@ kotlin {
 }
 
 mavenCentralPublish {
+    workingDir = rootProject.buildDir.resolve("publishing")
     artifactId = "kotlin-dynamic-delegation"
     packageGroup = Versions.publicationGroup
     singleDevGithubProject("Him188", "kotlin-dynamic-delegation")

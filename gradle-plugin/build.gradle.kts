@@ -10,7 +10,7 @@ plugins {
 dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(gradleApi())
-    implementation(kotlin("gradle-plugin-api"))
+    implementation(kotlin("gradle-plugin"))
     implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:${Versions.kotlin}")
 
     api(project(":kotlin-dynamic-delegation-compiler"))
@@ -46,11 +46,16 @@ buildConfig {
     packageName("me.him188.kotlin.dynamic.delegation.build")
     buildConfigField("String", "PLUGIN_ID", "\"me.him188.kotlin-dynamic-delegation\"")
     buildConfigField("String", "GROUP_ID", "\"${project.group}\"")
-    buildConfigField("String", "ARTIFACT_ID", "\"${project.name}\"")
+    buildConfigField("String", "ARTIFACT_ID_COMPILER", "\"${project(":kotlin-dynamic-delegation-compiler").name}\"")
     buildConfigField(
         "String",
-        "ARTIFACT_ID_EMBEDDABLE",
+        "ARTIFACT_ID_COMPILER_EMBEDDABLE",
         "\"${project(":kotlin-dynamic-delegation-compiler-embeddable").name}\""
+    )
+    buildConfigField(
+        "String",
+        "ARTIFACT_ID_RUNTIME",
+        "\"${project(":kotlin-dynamic-delegation").name}\""
     )
     buildConfigField("String", "VERSION", "\"${project.version}\"")
 }

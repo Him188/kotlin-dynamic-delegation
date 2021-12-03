@@ -46,6 +46,7 @@ val test by tasks.getting(Test::class) {
 }
 
 mavenCentralPublish {
+    workingDir = rootProject.buildDir.resolve("publishing")
     packageGroup = Versions.publicationGroup
     singleDevGithubProject("Him188", "kotlin-dynamic-delegation")
     licenseApacheV2()
