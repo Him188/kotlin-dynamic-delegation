@@ -2,6 +2,9 @@ package me.him188.kotlin.dynamic.delegation.compiler.diagnostics
 
 import com.intellij.psi.PsiElement
 import me.him188.kotlin.dynamic.delegation.compiler.backend.DynamicDelegationFqNames
+import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
+import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -19,7 +22,11 @@ class DynamicDelegationCallChecker(
             }
 
             val element = resolvedCall.call.callElement
-            println(element)
+            if (element.parents.filterNot { it is KtParenthesizedExpression }
+                    .firstOrNull() !is KtDelegatedSuperTypeEntry) {
+                context.trace.report(Errors.DYNAMIC_DELEGATION_NOT_ALLOWED.on(reportOn))
+                return
+            }
         }
     }
 }
