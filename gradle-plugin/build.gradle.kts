@@ -4,27 +4,41 @@ plugins {
     id("java-gradle-plugin")
     id("com.gradle.plugin-publish")
     id("com.github.gmazzo.buildconfig")
+    `maven-publish`
 }
 
 dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(gradleApi())
-    compileOnly(kotlin("gradle-plugin-api"))
-    compileOnly(kotlin("gradle-plugin"))
-    compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:${Versions.kotlin}")
+    implementation(kotlin("gradle-plugin-api"))
+    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:${Versions.kotlin}")
 
     api(project(":kotlin-dynamic-delegation-compiler"))
+
+
+    testImplementation(gradleApi())
+    testImplementation(localGroovy())
+    testImplementation(kotlin("test-junit5"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
+    testImplementation(gradleTestKit())
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 gradlePlugin {
     plugins {
         create("kotlinDynamicDelegation") {
-            id = "me.him188.kotlin.dynamic.delegation"
+            id = "me.him188.kotlin-dynamic-delegation"
             displayName = "Kotlin Dynamic Delegation"
             description = project.description
             implementationClass = "me.him188.kotlin.dynamic.delegation.CompilerGradlePlugin"
         }
     }
+}
+
+tasks.withType<Test> {
+    dependsOn("publishToMavenLocal", ":kotlin-dynamic-delegation:publishToMavenLocal")
 }
 
 buildConfig {
