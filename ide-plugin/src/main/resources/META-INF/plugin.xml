@@ -18,4 +18,18 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <idea-version since-build="201.*" until-build="203.*"/>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <moduleService
+                serviceImplementation="me.him188.kotlin.dynamic.delegation.idea.DynamicDelegationModuleCacheService"/>
+        <externalSystemTaskNotificationListener
+                implementation="me.him188.kotlin.dynamic.delegation.idea.DynamicDelegationProjectImportListener"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <irGenerationExtension
+                implementation="me.him188.kotlin.dynamic.delegation.compiler.backend.PluginIrGenerationExtension"/>
+        <storageComponentContainerContributor
+                implementation="me.him188.kotlin.dynamic.delegation.idea.DynamicDelegationComponentRegistrar"/>
+    </extensions>
 </idea-plugin>

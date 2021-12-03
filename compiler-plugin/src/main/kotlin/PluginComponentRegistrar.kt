@@ -35,7 +35,7 @@ open class PluginComponentRegistrar @JvmOverloads constructor(
                 moduleDescriptor: ModuleDescriptor,
             ) {
                 container.useInstance(
-                    DynamicDelegationCallChecker(actualConfiguration[JVMConfigurationKeys.IR, false])
+                    DynamicDelegationCallChecker { actualConfiguration[JVMConfigurationKeys.IR, false] }
                 )
             }
         })

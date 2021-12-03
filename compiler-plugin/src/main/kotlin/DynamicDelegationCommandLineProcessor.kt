@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
 @AutoService(CommandLineProcessor::class)
-class PluginCommandLineProcessor : CommandLineProcessor {
+class DynamicDelegationCommandLineProcessor : CommandLineProcessor {
     companion object {
         const val COMPILER_PLUGIN_ID: String = "kotlin-dynamic-delegation"
 

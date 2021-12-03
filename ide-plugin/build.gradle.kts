@@ -13,7 +13,7 @@ dependencies {
 
     api(project(":kotlin-dynamic-delegation"))
     api(project(":kotlin-dynamic-delegation-compiler"))
-    api(project(":kotlin-dynamic-delegation-gradle"))
+//    api(project(":kotlin-dynamic-delegation-gradle"))
 
     // compileOnly("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}")
     compileOnly(fileTree("run/idea-sandbox/plugins/Kotlin/lib").filter {

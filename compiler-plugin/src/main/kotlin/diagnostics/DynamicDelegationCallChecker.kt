@@ -8,12 +8,12 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 
 class DynamicDelegationCallChecker(
-    private val isIr: Boolean
+    private val isIr: (PsiElement) -> Boolean,
 ) : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         val fqn = resolvedCall.resultingDescriptor.fqNameSafe
         if (fqn == DynamicDelegationFqNames.DEFAULT) {
-            if (!isIr) {
+            if (!isIr(reportOn)) {
                 context.trace.report(Errors.DYNAMIC_DELEGATION_REQUIRES_IR.on(reportOn))
                 return
             }

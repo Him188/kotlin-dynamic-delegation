@@ -1,7 +1,7 @@
 package me.him188.kotlin.dynamic.delegation.gradle
 
 import me.him188.kotlin.dynamic.delegation.build.BuildConfig
-import me.him188.kotlin.dynamic.delegation.compiler.PluginCommandLineProcessor
+import me.him188.kotlin.dynamic.delegation.compiler.DynamicDelegationCommandLineProcessor
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsProjectExtension
@@ -67,7 +67,7 @@ open class CompilerGradlePlugin : KotlinCompilerPluginSupportPlugin {
 //        target.extensions.create("myExtension", MyExtension::class.java)
     }
 
-    override fun getCompilerPluginId(): String = PluginCommandLineProcessor.COMPILER_PLUGIN_ID
+    override fun getCompilerPluginId(): String = DynamicDelegationCommandLineProcessor.COMPILER_PLUGIN_ID
 
     override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {
         val project = kotlinCompilation.target.project
