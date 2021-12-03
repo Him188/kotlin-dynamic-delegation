@@ -1,6 +1,6 @@
-package me.him188.kotlin.dynamic.delegation
+package me.him188.kotlin.dynamic.delegation.gradle
 
-import example.kotlin.compiler.plugin.template.compiler.config.PluginConfiguration
+import me.him188.kotlin.dynamic.delegation.compiler.config.PluginConfiguration
 
 open class MyExtension : PluginConfiguration {
 

@@ -1,4 +1,4 @@
-package example.kotlin.compiler.plugin.template.compiler.backend
+package me.him188.kotlin.dynamic.delegation.compiler.backend
 
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin

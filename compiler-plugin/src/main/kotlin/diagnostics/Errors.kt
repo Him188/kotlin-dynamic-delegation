@@ -1,4 +1,4 @@
-package example.kotlin.compiler.plugin.template.compiler.diagnostics
+package me.him188.kotlin.dynamic.delegation.compiler.diagnostics
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0

@@ -1,7 +1,7 @@
-package me.him188.kotlin.dynamic.delegation
+package me.him188.kotlin.dynamic.delegation.gradle
 
-import example.kotlin.compiler.plugin.template.compiler.PluginCommandLineProcessor
 import me.him188.kotlin.dynamic.delegation.build.BuildConfig
+import me.him188.kotlin.dynamic.delegation.compiler.PluginCommandLineProcessor
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsProjectExtension

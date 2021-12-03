@@ -1,1 +1,1 @@
-package example.kotlin.compiler.plugin.template.compiler
+package me.him188.kotlin.dynamic.delegation.compiler

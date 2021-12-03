@@ -1,7 +1,7 @@
-package example.kotlin.compiler.plugin.template.compiler.diagnostics
+package me.him188.kotlin.dynamic.delegation.compiler.diagnostics
 
 import com.intellij.psi.PsiElement
-import example.kotlin.compiler.plugin.template.compiler.backend.DynamicDelegationFqNames
+import me.him188.kotlin.dynamic.delegation.compiler.backend.DynamicDelegationFqNames
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall

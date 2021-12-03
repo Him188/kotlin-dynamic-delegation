@@ -1,4 +1,4 @@
-package example.kotlin.compiler.plugin.template.compiler.config
+package me.him188.kotlin.dynamic.delegation.compiler.config
 
 interface PluginConfiguration {
     companion object {

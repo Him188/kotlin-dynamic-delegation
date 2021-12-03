@@ -1,10 +1,10 @@
-package example.kotlin.compiler.plugin.template.compiler
+package me.him188.kotlin.dynamic.delegation.compiler
 
 import com.google.auto.service.AutoService
 import com.intellij.mock.MockProject
-import example.kotlin.compiler.plugin.template.compiler.backend.PluginIrGenerationExtension
-import example.kotlin.compiler.plugin.template.compiler.config.PluginConfigurationImpl
-import example.kotlin.compiler.plugin.template.compiler.diagnostics.DynamicDelegationCallChecker
+import me.him188.kotlin.dynamic.delegation.compiler.backend.PluginIrGenerationExtension
+import me.him188.kotlin.dynamic.delegation.compiler.config.PluginConfigurationImpl
+import me.him188.kotlin.dynamic.delegation.compiler.diagnostics.DynamicDelegationCallChecker
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration

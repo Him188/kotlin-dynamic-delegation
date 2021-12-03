@@ -1,4 +1,4 @@
-package me.him188.kotlin.dynamic.delegation
+package me.him188.kotlin.dynamic.delegation.gradle
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner

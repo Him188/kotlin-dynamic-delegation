@@ -32,7 +32,7 @@ gradlePlugin {
             id = "me.him188.kotlin-dynamic-delegation"
             displayName = "Kotlin Dynamic Delegation"
             description = project.description
-            implementationClass = "me.him188.kotlin.dynamic.delegation.CompilerGradlePlugin"
+            implementationClass = "me.him188.kotlin.dynamic.delegation.gradle.CompilerGradlePlugin"
         }
     }
 }

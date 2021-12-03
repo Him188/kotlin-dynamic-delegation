@@ -1,6 +1,6 @@
-package example.kotlin.compiler.plugin.template.compiler.backend
+package me.him188.kotlin.dynamic.delegation.compiler.backend
 
-import example.kotlin.compiler.plugin.template.compiler.config.PluginConfiguration
+import me.him188.kotlin.dynamic.delegation.compiler.config.PluginConfiguration
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.builders.*

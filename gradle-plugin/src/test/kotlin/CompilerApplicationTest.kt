@@ -1,4 +1,4 @@
-package me.him188.kotlin.dynamic.delegation
+package me.him188.kotlin.dynamic.delegation.gradle
 
 import org.junit.jupiter.api.Test
 

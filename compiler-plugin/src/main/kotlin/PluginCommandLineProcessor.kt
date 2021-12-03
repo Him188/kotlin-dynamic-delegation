@@ -1,7 +1,7 @@
-package example.kotlin.compiler.plugin.template.compiler
+package me.him188.kotlin.dynamic.delegation.compiler
 
 import com.google.auto.service.AutoService
-import example.kotlin.compiler.plugin.template.compiler.PluginCompilerConfigurationKeys.EXAMPLE
+import me.him188.kotlin.dynamic.delegation.compiler.PluginCompilerConfigurationKeys.EXAMPLE
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOptionProcessingException
