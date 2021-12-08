@@ -23,7 +23,7 @@ private val pluginArtifact = SubpluginArtifact(
 )
 
 @Suppress("unused") // used in build.gradle.kts
-open class CompilerGradlePlugin : KotlinCompilerPluginSupportPlugin {
+public open class CompilerGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun apply(target: Project) {
 
         kotlin.runCatching { target.extensions.getByType(KotlinMultiplatformExtension::class.java) }

@@ -26,6 +26,10 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
+kotlin {
+    explicitApi()
+}
+
 gradlePlugin {
     plugins {
         create("kotlinDynamicDelegation") {
