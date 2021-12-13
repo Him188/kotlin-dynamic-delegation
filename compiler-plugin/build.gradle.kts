@@ -1,5 +1,5 @@
 plugins {
-    id("net.mamoe.maven-central-publish")
+    id("me.him188.maven-central-publish")
     kotlin("jvm")
     kotlin("kapt")
     id("com.github.johnrengelman.shadow")
@@ -47,7 +47,6 @@ val test by tasks.getting(Test::class) {
 
 mavenCentralPublish {
     workingDir = rootProject.buildDir.resolve("publishing")
-    packageGroup = Versions.publicationGroup
     singleDevGithubProject("Him188", "kotlin-dynamic-delegation")
     licenseApacheV2()
 }

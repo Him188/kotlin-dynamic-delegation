@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("net.mamoe.maven-central-publish")
+    id("me.him188.maven-central-publish")
     kotlin("jvm")
     kotlin("kapt")
     id("com.github.johnrengelman.shadow")
@@ -15,7 +15,6 @@ embeddableCompiler()
 
 mavenCentralPublish {
     workingDir = rootProject.buildDir.resolve("publishing")
-    packageGroup = Versions.publicationGroup
     singleDevGithubProject("Him188", "kotlin-dynamic-delegation")
     licenseApacheV2()
 

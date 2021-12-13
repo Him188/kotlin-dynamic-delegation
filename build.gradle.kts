@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 
 plugins {
     kotlin("multiplatform") apply false
-    id("net.mamoe.maven-central-publish") version "0.8.0" apply false
+    id("me.him188.maven-central-publish") version "1.0.0-dev-3" apply false
     kotlin("kapt") apply false
     kotlin("plugin.serialization") version Versions.kotlin apply false
     id("com.gradle.plugin-publish") version "0.12.0" apply false
