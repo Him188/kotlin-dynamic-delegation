@@ -17,7 +17,7 @@ plugins {
 allprojects {
     group = Versions.publicationGroup
     description =
-        "Kotlin compiler plugin for generating blocking bridges for calling suspend functions from Java with minimal effort"
+        "Kotlin compiler plugin that allows class delegation to be dynamic like property delegations"
     version = Versions.project
 
     repositories {
