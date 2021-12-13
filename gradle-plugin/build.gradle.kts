@@ -48,6 +48,9 @@ tasks.withType<Test> {
 buildConfig {
     val project = project(":kotlin-dynamic-delegation-compiler")
     packageName("me.him188.kotlin.dynamic.delegation.build")
+    useKotlinOutput {
+        internalVisibility = true
+    }
     buildConfigField("String", "PLUGIN_ID", "\"me.him188.kotlin-dynamic-delegation\"")
     buildConfigField("String", "GROUP_ID", "\"${project.group}\"")
     buildConfigField("String", "ARTIFACT_ID_COMPILER", "\"${project(":kotlin-dynamic-delegation-compiler").name}\"")
