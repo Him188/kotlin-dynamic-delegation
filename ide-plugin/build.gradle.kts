@@ -4,8 +4,6 @@ plugins {
     id("org.jetbrains.intellij") version "1.3.0"
     kotlin("jvm")
     kotlin("plugin.serialization")
-
-    id("com.github.johnrengelman.shadow")
 }
 
 dependencies {
@@ -13,19 +11,14 @@ dependencies {
 
     api(project(":kotlin-dynamic-delegation"))
     api(project(":kotlin-dynamic-delegation-compiler"))
-//    api(project(":kotlin-dynamic-delegation-gradle"))
 
-    // compileOnly("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}")
-    compileOnly(fileTree("run/idea-sandbox/plugins/Kotlin/lib").filter {
-        !it.name.contains("stdlib") && !it.name.contains("coroutines")
-    })
 }
 
 version = Versions.idePlugin
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version.set("2021.2")
+    version.set("2021.3")
     downloadSources.set(true)
     updateSinceUntilBuild.set(false)
 
@@ -51,11 +44,19 @@ tasks.getByName("publishPlugin", org.jetbrains.intellij.tasks.PublishPluginTask:
 }
 
 tasks.withType<org.jetbrains.intellij.tasks.PatchPluginXmlTask> {
-    sinceBuild.set("201.*") // Kotlin does not support 193 anymore
+    sinceBuild.set("201.0") // Kotlin does not support 193 anymore
     untilBuild.set("225.*")
+
+    pluginDescription.set(
+        """
+            Kotlin compiler plugin that allows class delegation to be dynamic like property delegations.
+            
+            Provides inspections highlighting.
+        """.trimIndent()
+    )
     changeNotes.set(
         """
-        See <a href="">Release notes</a>
+        See <a href="https://github.com/Him188/kotlin-dynamic-delegation/releases">Release notes</a>
     """.trimIndent()
     )
 }
@@ -63,34 +64,3 @@ tasks.withType<org.jetbrains.intellij.tasks.PatchPluginXmlTask> {
 tasks.withType(KotlinJvmCompile::class) {
     kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
 }
-
-val theProject = project
-
-tasks.getByName("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
-    archiveClassifier.set("")
-    this.dependencyFilter.exclude {
-        it.name.contains("intellij", ignoreCase = true) || it.name.contains("idea", ignoreCase = true)
-    }
-    exclude {
-        // exclude ComponentRegistrar which is for CLI compiler.
-        it.name == "org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar" && !it.path.contains(theProject.path)
-    }
-}
-
-tasks.buildPlugin.get().dependsOn(tasks.shadowJar.get())
-
-/*
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}*/
-
-/*
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}*/
