@@ -25,8 +25,9 @@ class PluginIrGenerationExtension(
     private val ext: PluginConfiguration
 ) : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
+        val context = PluginGenerationContext(pluginContext, ext)
         for (file in moduleFragment.files) {
-            DynamicDelegationLoweringPass(PluginGenerationContext(pluginContext, ext)).runOnFilePostfix(file)
+            DynamicDelegationLoweringPass(context).runOnFilePostfix(file)
             RemoveDelegateFieldInitializerPass(pluginContext, ext).runOnFilePostfix(file)
         }
     }
