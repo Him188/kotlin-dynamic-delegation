@@ -44,9 +44,6 @@ tasks.getByName("publishPlugin", org.jetbrains.intellij.tasks.PublishPluginTask:
 }
 
 tasks.withType<org.jetbrains.intellij.tasks.PatchPluginXmlTask> {
-    sinceBuild.set("201.0") // Kotlin does not support 193 anymore
-    untilBuild.set("225.*")
-
     pluginDescription.set(
         """
             Kotlin compiler plugin that allows class delegation to be dynamic like property delegations.
