@@ -18,7 +18,7 @@ version = Versions.idePlugin
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version.set("2021.3")
+    version.set(Versions.intellij)
     downloadSources.set(true)
     updateSinceUntilBuild.set(false)
 
