@@ -4,5 +4,11 @@ interface I
 class C : I by (dynamicDelegation { TODO() })
 
 fun main() {
-    dynamicDelegation { object : I {} }
+    //
+    //
+
+    //
+    dynamicDelegation {
+        object : I {}
+    }
 }

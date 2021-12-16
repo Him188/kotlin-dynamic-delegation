@@ -24,6 +24,8 @@
                 serviceImplementation="me.him188.kotlin.dynamic.delegation.idea.DynamicDelegationModuleCacheService"/>
         <externalSystemTaskNotificationListener
                 implementation="me.him188.kotlin.dynamic.delegation.idea.DynamicDelegationProjectImportListener"/>
+        <colorSettingsPage implementation="me.him188.kotlin.dynamic.delegation.idea.settings.HighlightingColorPage"/>
+        <highlightVisitor implementation="me.him188.kotlin.dynamic.delegation.idea.ByKeywordHighlightVisitor"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -31,5 +33,6 @@
                 implementation="me.him188.kotlin.dynamic.delegation.compiler.backend.PluginIrGenerationExtension"/>
         <storageComponentContainerContributor
                 implementation="me.him188.kotlin.dynamic.delegation.idea.DynamicDelegationComponentRegistrar"/>
+        <!--        <highlighterExtension implementation="me.him188.kotlin.dynamic.delegation.idea.ByKeywordHighlightVisitor"/>-->
     </extensions>
 </idea-plugin>
