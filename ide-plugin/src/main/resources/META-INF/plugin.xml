@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>example.kotlin-dynamic-delegation</id>
+    <id>me.him188.kotlin-dynamic-delegation</id>
 
-    <name>Kotlin Compiler Template</name>
+    <name>Kotlin Dynamic Delegation</name>
 
     <vendor
             email="Him188@mamoe.net"
