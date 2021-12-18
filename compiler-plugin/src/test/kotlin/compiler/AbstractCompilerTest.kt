@@ -13,11 +13,6 @@ import kotlin.test.assertEquals
 internal abstract class AbstractCompilerTest {
     protected open val overrideCompilerConfiguration: CompilerConfiguration? = null
 
-    var ignoredMessages = """
-        w: Language version is automatically inferred to 1.5 when using the old JVM backend. Consider specifying -language-version explicitly, or remove -Xuse-old-backend
-        w: -Xuse-old-backend is deprecated and will be removed in a future release
-    """.trimIndent().let { analyzeKotlinCompilationMessages(it, withIgnorance = false) }
-
 
     sealed class KotlinCompilationTestBuilder {
         private val kotlinSources = mutableListOf<String>()
@@ -117,8 +112,8 @@ internal abstract class AbstractCompilerTest {
         }
     }
 
-    fun analyzeKotlinCompilationMessages(messages: String, withIgnorance: Boolean = true): KotlinCompilationMessages {
-        val matching = Regex("""([ew]): ([a-zA-Z0-9/.\\\-_+\w ]+)?: \(([0-9]+?, [0-9]+?)\): (.+)""".trimMargin())
+    fun analyzeKotlinCompilationMessages(messages: String): KotlinCompilationMessages {
+        val matching = Regex("""([ew]): ([a-zA-Z0-9/.:\\\-_+\w ]+)?: \(([0-9]+?, [0-9]+?)\): (.+)""".trimMargin())
         return matching.findAll(messages)
             .map { it.destructured }
             .map { (kind, file, location, message) ->
