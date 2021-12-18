@@ -69,6 +69,7 @@ internal abstract class AbstractCompilerTest {
                     builder.compilationActions.forEach { it.invoke(this) }
                 }
             ) {
+                println("Compiler output: \n$messages")
                 builder.resultHandler?.invoke(this)
             }
         }
