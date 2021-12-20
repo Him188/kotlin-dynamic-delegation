@@ -34,10 +34,10 @@ class PluginIrGenerationExtension(
 }
 
 data class PluginGenerationContext(
-    val context: IrPluginContext,
+    val irContext: IrPluginContext,
     val ext: PluginConfiguration,
-    val wrapperExpressionMapper: WrapperExpressionMapper = WrapperExpressionMapper(context, ext),
-) : IrPluginContext by context
+    val wrapperExpressionMapper: WrapperExpressionMapper = WrapperExpressionMapper(irContext, ext),
+)
 
 class RemoveDelegateFieldInitializerPass(
     private val context: IrPluginContext,
@@ -58,7 +58,7 @@ class DynamicDelegationLoweringPass(
     private val pluginContext: PluginGenerationContext,
 ) : ClassLoweringPass {
     override fun lower(irClass: IrClass) {
-        val dynamicDelegationSymbols = pluginContext.context.referenceFunctions(DynamicDelegationFqNames.DEFAULT)
+        val dynamicDelegationSymbols = pluginContext.irContext.referenceFunctions(DynamicDelegationFqNames.DEFAULT)
 
         val delegateFields =
             irClass.fields
@@ -96,7 +96,7 @@ class DynamicDelegationLoweringPass(
             parent = field.parent
             dispatchReceiverParameter = field.parentAsClass.thisReceiver?.copyTo(this)
             val (expr, helperField) = pluginContext.wrapperExpressionMapper.map(symbol, extractActualCall())
-            body = pluginContext.createIrBuilder(symbol).irExprBody(expr)
+            body = pluginContext.irContext.createIrBuilder(symbol).irExprBody(expr)
 
             DynamicDelegationWrapper(this, helperField)
         }
@@ -120,7 +120,7 @@ class DynamicExtensionClassTransformer(
 
             val delegateCall = (declaration.body?.statements?.single() as IrReturn).value.assertCast<IrCall>()
 
-            declaration.body = context.createIrBuilder(declaration.symbol).run {
+            declaration.body = context.irContext.createIrBuilder(declaration.symbol).run {
                 val delegateInstance = irCall(
                     delegation.wrapper.function.symbol,
                     dispatchReceiver = declaration.dispatchReceiverParameter?.let { irGet(it) }
