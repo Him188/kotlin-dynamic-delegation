@@ -21,13 +21,14 @@ dependencies tests@{
 
     testImplementation(kotlin("reflect"))
 
-    testImplementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:${Versions.kotlin}")
-    testRuntimeOnly("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}") // for debugger
+    testImplementation("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}") // for debugger
     //testImplementation("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}")
 
     testImplementation(kotlin("test-junit5"))
 
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.5")
+    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.6") {
+        exclude("org.jetbrains.kotlin", "kotlin-compiler-embeddable")
+    }
     testImplementation("org.assertj:assertj-core:3.21.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")

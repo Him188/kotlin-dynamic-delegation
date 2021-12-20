@@ -9,9 +9,8 @@ plugins {
 dependencies {
     compileOnly(kotlin("stdlib-jdk8"))
 
-    api(project(":kotlin-dynamic-delegation"))
-    api(project(":kotlin-dynamic-delegation-compiler"))
-
+    implementation(project(":kotlin-dynamic-delegation"))
+    implementation(project(":kotlin-dynamic-delegation-compiler"))
 }
 
 version = Versions.idePlugin
