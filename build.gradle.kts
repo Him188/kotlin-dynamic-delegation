@@ -35,6 +35,10 @@ nexusStaging {
 subprojects {
     afterEvaluate {
         setupKotlinSourceSetsSettings()
+
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+            kotlinOptions.jvmTarget = "1.8"
+        }
     }
 }
 
@@ -59,12 +63,6 @@ fun Project.setupKotlinSourceSetsSettings() {
                 optIn("kotlin.experimental.ExperimentalTypeInference")
                 optIn("kotlin.contracts.ExperimentalContracts")
             }
-        }
-    }
-
-    kotlin.runCatching {
-        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-            kotlinOptions.jvmTarget = "1.8"
         }
     }
 
