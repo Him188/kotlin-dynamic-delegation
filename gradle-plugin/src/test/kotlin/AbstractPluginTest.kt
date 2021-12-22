@@ -45,7 +45,7 @@ abstract class AbstractPluginTest {
                 *taskNames,
                 "--stacktrace",
             )
-            .withGradleVersion("7.1")
+            .withGradleVersion("7.3.1")
             .withPluginClasspath()
             .forwardOutput()
             .withEnvironment(System.getenv())
