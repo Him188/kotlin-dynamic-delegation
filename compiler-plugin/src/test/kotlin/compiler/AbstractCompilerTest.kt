@@ -1,14 +1,36 @@
 package compiler
 
 import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.SourceFile
 import me.him188.kotlin.dynamic.delegation.compiler.PluginComponentRegistrar
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
+import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
+import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+import org.jetbrains.kotlin.cli.jvm.plugins.ServiceLoaderLite
+import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.config.Services
+import org.jetbrains.kotlin.incremental.destinationAsFile
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
+import java.net.URI
+import java.nio.file.Paths
 import java.util.*
+import kotlin.concurrent.thread
+import kotlin.io.path.createTempDirectory
+import kotlin.math.absoluteValue
+import kotlin.random.Random
 import kotlin.test.assertEquals
+
+data class CompilationResult(
+    val exitCode: ExitCode,
+    val messages: String,
+)
+
 
 internal abstract class AbstractCompilerTest {
     protected open val overrideCompilerConfiguration: CompilerConfiguration? = null
@@ -19,9 +41,9 @@ internal abstract class AbstractCompilerTest {
         private val javaSources = mutableListOf<String>()
 
         private var expectSuccess = true
-        private var resultHandler: (KotlinCompilation.Result.() -> Unit)? = null
+        private var resultHandler: (CompilationResult.() -> Unit)? = null
 
-        private val compilationActions = mutableListOf<KotlinCompilation.() -> Unit>()
+        private val compilationActions = mutableListOf<K2JVMCompilerArguments.() -> Unit>()
 
         fun javaSource(@Language("java") code: String) {
             this.javaSources.add(code)
@@ -36,19 +58,19 @@ internal abstract class AbstractCompilerTest {
             useOldBackend = true
         }
 
-        fun useOldBackend() = compilation { useOldBackend() }
+        fun useOldBackend() = compilation { useOldBackend = true }
 
-        fun compilation(block: KotlinCompilation.() -> Unit) {
+        fun compilation(block: K2JVMCompilerArguments.() -> Unit) {
             compilationActions.add(block)
         }
 
-        fun expectFailure(block: KotlinCompilation.Result.() -> Unit): FinishConfiguration {
+        fun expectFailure(block: CompilationResult.() -> Unit): FinishConfiguration {
             expectSuccess = false
             resultHandler = block
             return FinishConfiguration
         }
 
-        fun expectSuccess(block: KotlinCompilation.Result.() -> Unit): FinishConfiguration {
+        fun expectSuccess(block: CompilationResult.() -> Unit): FinishConfiguration {
             expectSuccess = true
             resultHandler = block
             return FinishConfiguration
@@ -125,7 +147,7 @@ internal abstract class AbstractCompilerTest {
             }
     }
 
-    fun KotlinCompilation.Result.analyzeMessages(): KotlinCompilationMessages =
+    fun CompilationResult.analyzeMessages(): KotlinCompilationMessages =
         analyzeKotlinCompilationMessages(messages)
 
     // new
@@ -134,7 +156,7 @@ internal abstract class AbstractCompilerTest {
         builder.run()
     }
 
-    fun KotlinCompilation.Result.withMessages(block: KotlinCompilationMessages.() -> Unit) {
+    fun CompilationResult.withMessages(block: KotlinCompilationMessages.() -> Unit) {
         return analyzeMessages().run(block)
     }
 
@@ -142,6 +164,16 @@ internal abstract class AbstractCompilerTest {
     companion object {
         @Suppress("ObjectPropertyName")
         const val FILE_SPLITTER = "-------------------------------------"
+        private val tempDir = createTempDirectory("kotlin-compile-test").also {
+            Runtime.getRuntime().addShutdownHook(thread(false) {
+                kotlin.runCatching { it.toFile().deleteRecursively() }
+            })
+        }
+
+        data class SourceFile(
+            val name: String,
+            val content: String
+        )
 
         // legacy
         fun testJvmCompile(
@@ -151,9 +183,9 @@ internal abstract class AbstractCompilerTest {
             java: String? = null,
             jvmTarget: JvmTarget = JvmTarget.JVM_1_8,
             overrideCompilerConfiguration: CompilerConfiguration? = null,
-            config: KotlinCompilation.() -> Unit = {},
+            config: K2JVMCompilerArguments.() -> Unit = {},
             expectSuccess: Boolean = true,
-            block: KotlinCompilation.Result.() -> Unit = {},
+            block: CompilationResult.() -> Unit = {},
         ) {
             val intrinsicImports = listOf(
                 "import kotlin.test.*",
@@ -162,27 +194,77 @@ internal abstract class AbstractCompilerTest {
             val kotlinSources = kt.split(Companion.FILE_SPLITTER).mapIndexed { index, source ->
                 when {
                     source.trim().startsWith("package") -> {
-                        SourceFile.kotlin("TestData${index}.kt", run {
+                        SourceFile("TestData${index}.kt", run {
                             source.trimIndent().lines().mapTo(LinkedList()) { it }
                                 .apply { addAll(1, intrinsicImports) }
                                 .joinToString("\n")
                         })
                     }
                     source.trim().startsWith("@file:") -> {
-                        SourceFile.kotlin("TestData${index}.kt", run {
+                        SourceFile("TestData${index}.kt", run {
                             source.trim().trimIndent().lines().mapTo(LinkedList()) { it }
                                 .apply { addAll(1, intrinsicImports) }
                                 .joinToString("\n")
                         })
                     }
                     else -> {
-                        SourceFile.kotlin(
-                            name = "TestData${index}.kt",
-                            contents = "${intrinsicImports.joinToString("\n")}\n${source.trimIndent()}"
+                        SourceFile(
+                            "TestData${index}.kt",
+                            "${intrinsicImports.joinToString("\n")}\n${source.trimIndent()}"
                         )
                     }
                 }
             }
+
+            val messageBuffer = ByteArrayOutputStream()
+
+            val dir = tempDir.resolve("test" + Random.nextInt().absoluteValue.toString()).toFile().apply { mkdirs() }
+
+            fun getResourcesPath(): String {
+                val resourceName = "META-INF/services/org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar"
+                return this::class.java.classLoader.getResources(resourceName)
+                    .asSequence()
+                    .mapNotNull { url ->
+                        val uri = URI.create(url.toString().removeSuffix("/$resourceName"))
+                        when (uri.scheme) {
+                            "jar" -> Paths.get(URI.create(uri.schemeSpecificPart.removeSuffix("!")))
+                            "file" -> Paths.get(uri)
+                            else -> return@mapNotNull null
+                        }.toAbsolutePath()
+                    }
+                    .find { resourcesPath ->
+                        ServiceLoaderLite.findImplementations(
+                            ComponentRegistrar::class.java,
+                            listOf(resourcesPath.toFile())
+                        )
+                            .any { implementation -> implementation == PluginComponentRegistrar::class.java.name }
+                    }?.toString()
+                    ?: throw AssertionError("Could not get path to ComponentRegistrar service from META-INF")
+            }
+
+
+            val exitCode = K2JVMCompiler().run {
+                val arguments = createArguments().apply(config)
+                val collector = PrintingMessageCollector(
+                    PrintStream(CombinedOutputStream(System.out, messageBuffer)),
+                    MessageRenderer.GRADLE_STYLE,
+                    true
+                )
+                arguments.allowNoSourceFiles = true
+                arguments.pluginClasspaths = arrayOf(getResourcesPath())
+                arguments.destinationAsFile = File("testCompileOutput").apply {
+                    walk().forEach { it.delete() }
+                    mkdir()
+                }
+                arguments.jvmTarget = jvmTarget.description
+
+                kotlinSources.associateBy { dir.resolve(it.name) }.forEach { (file, source) ->
+                    file.writeText(source.content)
+                    arguments.freeArgs += file.absolutePath
+                }
+                exec(collector, Services.EMPTY, arguments)
+            }
+
             val result =
                 KotlinCompilation().apply {
                     sources = listOfNotNull(
