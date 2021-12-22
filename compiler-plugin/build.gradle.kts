@@ -1,6 +1,7 @@
 plugins {
     id("me.him188.maven-central-publish")
     kotlin("jvm")
+    java
     kotlin("kapt")
     id("com.github.johnrengelman.shadow")
 }
