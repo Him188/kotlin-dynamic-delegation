@@ -41,6 +41,12 @@ gradlePlugin {
     }
 }
 
+pluginBundle {
+    website = "https://github.com/him188/kotlin-dynamic-delegation"
+    vcsUrl = "https://github.com/him188/kotlin-dynamic-delegation.git"
+    tags = listOf("build")
+}
+
 tasks.withType<Test> {
     dependsOn("publishToMavenLocal", ":kotlin-dynamic-delegation:publishToMavenLocal")
 }
