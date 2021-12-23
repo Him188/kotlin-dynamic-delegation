@@ -2,9 +2,7 @@
 
 Kotlin compiler plugin that allows class delegation to be dynamic like property delegations.
 
-The plugin is working in progress.
-
-## What does this plugin do
+## What can this plugin do
 
 It provides a function
 
@@ -45,4 +43,14 @@ The compiler generates `TestObject.getResult()` as follows:
 override fun getResult(): Int = getInstanceFromOtherPlaces().getResult()
 ```
 
-So the delegated instance can be changed. 
+So the delegated instance can be changed.
+
+## Using the plugin
+
+```kotlin
+plugins {
+    id("me.him188.kotlin-dynamic-delegation") version "VERSION"
+}
+```
+
+See VERSION from [releases](https://github.com/Him188/kotlin-dynamic-delegation/releases)
