@@ -14,6 +14,7 @@ dependencies {
 embeddableCompiler()
 
 mavenCentralPublish {
+    useCentralS01()
     workingDir = rootProject.buildDir.resolve("publishing")
     singleDevGithubProject("Him188", "kotlin-dynamic-delegation")
     licenseApacheV2()

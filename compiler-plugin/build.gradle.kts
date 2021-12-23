@@ -35,7 +35,9 @@ dependencies tests@{
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
-embeddableCompiler()
+embeddableCompiler() {
+    archiveFileName.set("${project.name}-all.jar")
+}
 
 val test by tasks.getting(Test::class) {
     dependsOn(tasks.getByName("embeddable"))
@@ -47,6 +49,7 @@ val test by tasks.getting(Test::class) {
 }
 
 mavenCentralPublish {
+    useCentralS01()
     workingDir = rootProject.buildDir.resolve("publishing")
     singleDevGithubProject("Him188", "kotlin-dynamic-delegation")
     licenseApacheV2()

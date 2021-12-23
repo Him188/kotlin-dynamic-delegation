@@ -80,7 +80,6 @@ internal inline fun Project.compilerShadowJar(
     //dependencies.add(compilerJar.name, dependencies.project(":kotlin-compiler", configuration = "runtimeJar"))
 
     return tasks.register<ShadowJar>(taskName) {
-        archiveFileName.set("${project.name}-all.jar")
         @Suppress("DEPRECATION")
         destinationDir = File(buildDir, "libs")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
