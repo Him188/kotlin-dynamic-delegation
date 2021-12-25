@@ -85,7 +85,6 @@ class WrapperExpressionMapper(
                     }
                 }
 
-                // TODO: 02/12/2021 how about local functions? it should be a variable instead.
                 MapResult(
                     irCall(invoke, irGetField(irGet(ownerSymbol.owner.dispatchReceiverParameter!!), field)),
                     field
