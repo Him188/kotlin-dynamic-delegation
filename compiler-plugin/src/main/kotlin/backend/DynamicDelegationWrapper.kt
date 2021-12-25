@@ -60,7 +60,7 @@ class WrapperExpressionMapper(
             // optimizations
             val optimized = when (argumentExpression) {
                 is IrFunctionExpression -> irCall(invoke, argumentExpression) // { getInstanceFromOtherPlaces() }
-                is IrFunctionReference -> irCall(argumentExpression.symbol) // ::getInstanceFromOtherPlaces
+                is IrFunctionReference -> argumentExpression // ::getInstanceFromOtherPlaces
                 is IrPropertyReference -> irGetProperty(argumentExpression) // ::property  // with getter/backingField
                 is IrBlock -> irCall(invoke, argumentExpression) // TestObject::getInstanceFromOtherPlaces
                 else -> null

@@ -132,10 +132,24 @@ class DynamicExtensionClassTransformer(
                 )
 
                 irExprBody(irCall(delegateCall.symbol, dispatchReceiver = delegateInstance).apply {
-                    this.copyTypeAndValueArgumentsFrom(delegateCall)
+                    copyExtensionReceiverFrom(delegateCall)
+                    copyArgumentsFrom(delegateCall)
                 })
             }
         }
         return super.visitDeclaration(declaration)
     }
+}
+
+internal fun IrCall.copyArgumentsFrom(delegateCall: IrCall) {
+    repeat(delegateCall.valueArgumentsCount) {
+        putValueArgument(it, delegateCall.getValueArgument(it))
+    }
+    repeat(delegateCall.typeArgumentsCount) {
+        putTypeArgument(it, delegateCall.getTypeArgument(it))
+    }
+}
+
+private fun IrCall.copyExtensionReceiverFrom(delegateCall: IrCall) {
+    this.extensionReceiver = delegateCall.extensionReceiver
 }
