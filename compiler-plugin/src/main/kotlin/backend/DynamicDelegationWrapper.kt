@@ -44,7 +44,12 @@ class WrapperExpressionMapper(
         fun IrBuilderWithScope.irGetProperty(
             property: IrPropertyReference
         ): IrExpression {
-            property.getter?.let { getter -> return irCall(getter) }
+            property.getter?.let { getter ->
+                return irCall(getter).apply {
+                    extensionReceiver = property.extensionReceiver
+                    dispatchReceiver = property.dispatchReceiver
+                }
+            }
             property.field?.let { field ->
                 return irGetField(property.extensionReceiver ?: property.dispatchReceiver, field.owner)
             }
