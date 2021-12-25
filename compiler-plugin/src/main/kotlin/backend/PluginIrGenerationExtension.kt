@@ -118,7 +118,12 @@ class DynamicExtensionClassTransformer(
             val delegation = declaration.findResponsibleDelegation(delegations)
                 ?: return super.visitDeclaration(declaration)
 
-            val delegateCall = (declaration.body?.statements?.single() as IrReturn).value.assertCast<IrCall>()
+            val delegateCall = when (val expr = declaration.body?.statements?.single()) {
+                is IrReturn -> expr.value.assertCast()
+                is IrCall -> expr
+                null -> return super.visitDeclaration(declaration)
+                else -> error("Unsupported expr: ${expr::class.qualifiedName} $expr")
+            }
 
             declaration.body = context.irContext.createIrBuilder(declaration.symbol).run {
                 val delegateInstance = irCall(
@@ -126,7 +131,9 @@ class DynamicExtensionClassTransformer(
                     dispatchReceiver = declaration.dispatchReceiverParameter?.let { irGet(it) }
                 )
 
-                irExprBody(irCall(delegateCall.symbol, dispatchReceiver = delegateInstance))
+                irExprBody(irCall(delegateCall.symbol, dispatchReceiver = delegateInstance).apply {
+                    this.copyTypeAndValueArgumentsFrom(delegateCall)
+                })
             }
         }
         return super.visitDeclaration(declaration)
