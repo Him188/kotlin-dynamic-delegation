@@ -129,6 +129,31 @@ internal class TopLevelObjectTest : AbstractCompilerTest() {
     }
 
     @Test
+    fun `by function reference with argument inside object`() = testJvmCompile(
+        """
+            interface TestClass {
+                fun getResult(): Int
+            }
+
+            var obj = TestObject
+            object TestObject : TestClass by dynamicDelegation(obj::getInstanceFromOtherPlaces) {
+                var called = 0
+                fun getInstanceFromOtherPlaces(default: Int = 0): TestClass  {
+                    val v = called++
+                    return object : TestClass {
+                        override fun getResult(): Int = v
+                    }
+                }
+            }
+        """
+    ) {
+        classLoader.loadClass("TestObject").getDeclaredField("INSTANCE").get(null).run {
+            assertEquals(0, runFunction<Int>("getResult"))
+            assertEquals(1, runFunction<Int>("getResult"))
+        }
+    }
+
+    @Test
     fun `by property reference without backing field`() = testJvmCompile(
         """
             interface TestClass {
