@@ -48,7 +48,15 @@ tasks.withType<org.jetbrains.intellij.tasks.PatchPluginXmlTask> {
         """
             Kotlin compiler plugin that allows class delegation to be dynamic like property delegations.
             
-            Provides inspections highlighting.
+            This IDE plugin provides inspections and highlighting only. You will need a compiler plugin for complete feature support.
+            
+            The compiler plugin supports Gradle. Add the following code into build.gradle.kts:
+            
+            plugins {
+                id("me.him188.kotlin-dynamic-delegation") version "VERSION"
+            }
+            
+            where VERSION can be found <a href="https://github.com/Him188/kotlin-dynamic-delegation/releases">here</a>, e.g. "0.1.1-160.1".
         """.trimIndent()
     )
     changeNotes.set(
