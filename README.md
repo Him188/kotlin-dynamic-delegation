@@ -47,6 +47,8 @@ So the delegated instance can be changed.
 
 ## Using the plugin
 
+build.gradle.kts
+
 ```kotlin
 plugins {
     id("me.him188.kotlin-dynamic-delegation") version "VERSION"
@@ -54,3 +56,12 @@ plugins {
 ```
 
 See VERSION from [releases](https://github.com/Him188/kotlin-dynamic-delegation/releases)
+
+## Installing IntelliJ plugin
+
+Plugin for IntelliJ IDEA is provided to help writing dynamic delegations. It provides various inspections that report
+before compiling the code.
+
+Plugin Marketplace Page: https://plugins.jetbrains.com/plugin/18219-kotlin-dynamic-delegation
+
+![](.README_images/57c295e7.png)
