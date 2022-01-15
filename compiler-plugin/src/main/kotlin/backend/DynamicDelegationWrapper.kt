@@ -2,6 +2,7 @@ package me.him188.kotlin.dynamic.delegation.compiler.backend
 
 import me.him188.kotlin.dynamic.delegation.compiler.config.PluginConfiguration
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.buildField
@@ -40,14 +41,21 @@ class WrapperExpressionMapper(
         val helperField: IrField?,
     )
 
+    // [argumentExpression] can be the lambda inside `dynamicDelegation({})`, however it can also be function references and property references
     fun map(ownerSymbol: IrSimpleFunctionSymbol, argumentExpression: IrExpression): MapResult {
         fun IrBuilderWithScope.irGetProperty(
             property: IrPropertyReference
         ): IrExpression {
             property.getter?.let { getter ->
                 return irCall(getter).apply {
+                    val instance =
+                        irGet(ownerSymbol.owner.dispatchReceiverParameter!!) // instance of the container class
+
                     extensionReceiver = property.extensionReceiver
+                        ?: if (getter.owner.extensionReceiverParameter != null) instance else null // KProperty1
+
                     dispatchReceiver = property.dispatchReceiver
+                        ?: if (getter.owner.dispatchReceiverParameter != null) instance else null // KProperty1
                 }
             }
             property.field?.let { field ->
@@ -67,29 +75,34 @@ class WrapperExpressionMapper(
             }
             if (optimized != null) MapResult(optimized, null)
             else {
-                // Calling some other expressions which can't be optimized, for example, a property whose type is () -> T
-                // We should introduce a field
+                // The [argumentExpression] can't be optimized, e.g. a property whose type is `() -> T`
+                // We should introduce a field to store this [argumentExpression]
 
-
-                val field = context.irFactory.buildField {
-                    startOffset = ownerSymbol.owner.startOffset
-                    endOffset = ownerSymbol.owner.endOffset
-                    name = Name.identifier(ownerSymbol.owner.name.asString() + "\$wrapper")
-                    type = argumentExpression.type
-                    origin = DYNAMIC_DELEGATION_WRAPPER
-                    visibility = DescriptorVisibilities.PRIVATE
-                }.apply {
-                    parent = ownerSymbol.owner.parentAsClass
-                    initializer = pluginContext.createIrBuilder(symbol).run {
-                        irExprBody(argumentExpression)
-                    }
-                }
+                val field = irFieldFor(ownerSymbol, ownerSymbol.owner.name.asString() + "\$1", argumentExpression)
 
                 MapResult(
                     irCall(invoke, irGetField(irGet(ownerSymbol.owner.dispatchReceiverParameter!!), field)),
                     field
                 )
             }
+        }
+    }
+
+    private fun DeclarationIrBuilder.irFieldFor(
+        ownerSymbol: IrSimpleFunctionSymbol,
+        name: String,
+        initializer: IrExpression
+    ): IrField = context.irFactory.buildField {
+        startOffset = ownerSymbol.owner.startOffset
+        endOffset = ownerSymbol.owner.endOffset
+        this.name = Name.identifier(name)
+        type = initializer.type
+        origin = DYNAMIC_DELEGATION_WRAPPER
+        visibility = DescriptorVisibilities.PRIVATE
+    }.apply {
+        parent = ownerSymbol.owner.parentAsClass
+        this.initializer = pluginContext.createIrBuilder(symbol).run {
+            irExprBody(initializer)
         }
     }
 }

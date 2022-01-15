@@ -2,9 +2,12 @@ package me.him188.kotlin.dynamic.delegation.compiler.diagnostics
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0
+import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap
+import org.jetbrains.kotlin.diagnostics.rendering.Renderers
+import org.jetbrains.kotlin.name.Name
 
 object Errors : DefaultErrorMessages.Extension {
     @JvmField
@@ -15,6 +18,9 @@ object Errors : DefaultErrorMessages.Extension {
 
     @JvmField
     var DYNAMIC_DELEGATION_REQUIRES_IR = DiagnosticFactory0.create<PsiElement>(Severity.ERROR)
+
+    @JvmField
+    var INCOMPATIBLE_PROPERTY_RECEIVER = DiagnosticFactory1.create<PsiElement, Name>(Severity.ERROR)
 
 
     private val map = DiagnosticFactoryToRendererMap("JvmBlockingBridge").apply {
@@ -32,6 +38,12 @@ object Errors : DefaultErrorMessages.Extension {
         put(
             DYNAMIC_DELEGATION_REQUIRES_IR,
             "Dynamic delegation is only supported in IR backend."
+        )
+
+        put(
+            INCOMPATIBLE_PROPERTY_RECEIVER,
+            "Property receiver is not compatible with type ''{0}''",
+            Renderers.TO_STRING
         )
     }
 

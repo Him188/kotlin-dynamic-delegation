@@ -12,3 +12,13 @@ fun main() {
         object : I {}
     }
 }
+
+interface TestClass {
+    val result: Int
+}
+
+class IncompatibleClass {
+    val refined: TestClass get() = error("")
+}
+
+class CombinedMessage : TestClass by dynamicDelegation(IncompatibleClass::refined)
