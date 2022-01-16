@@ -2,10 +2,14 @@ package me.him188.kotlin.dynamic.delegation.compiler.diagnostics
 
 import com.intellij.psi.PsiElement
 import me.him188.kotlin.dynamic.delegation.compiler.backend.DynamicDelegationFqNames
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.psi.psiUtil.parents
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
@@ -41,17 +45,19 @@ class DynamicDelegationCallChecker(
         resolvedCall: ResolvedCall<*>,
         reportOn: PsiElement
     ) {
-        val containingClassType =
-            context.resolutionContext.expectedType
+        val containingClass = resolvedCall.call.callElement.containingClass()
+            ?.getDescriptor(context.trace.bindingContext) as? ClassDescriptor ?: return
+
+        val containingClassType = containingClass.defaultType
 
         val argument = resolvedCall.valueArgumentsByIndex?.firstOrNull() as? ExpressionValueArgument ?: return
         val argumentType =
             argument.valueArgument?.getArgumentExpression()?.getType(context.trace.bindingContext) ?: return
 
         if (argumentType.constructor.declarationDescriptor?.defaultType?.isSubtypeOf(context.moduleDescriptor.builtIns.kProperty1.defaultType) != true) return
-        val propertyReferenceReceiver = argumentType.arguments.firstOrNull()?.type ?: return
+        val referenceReceiverType = argumentType.arguments.firstOrNull()?.type ?: return
 
-        if (!propertyReferenceReceiver.isSubtypeOf(containingClassType)) {
+        if (containingClassType != referenceReceiverType && !containingClassType.isSubtypeOf(referenceReceiverType)) {
             context.trace.report(
                 Errors.INCOMPATIBLE_PROPERTY_RECEIVER.on(
                     argument.valueArgument?.getArgumentExpression()?.children?.firstOrNull()
@@ -63,3 +69,6 @@ class DynamicDelegationCallChecker(
         }
     }
 }
+
+internal fun KtExpression.getDescriptor(context: BindingContext): DeclarationDescriptor? =
+    context[BindingContext.DECLARATION_TO_DESCRIPTOR, this]
