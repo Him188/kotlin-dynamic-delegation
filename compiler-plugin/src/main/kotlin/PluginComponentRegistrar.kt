@@ -5,6 +5,7 @@ import com.intellij.mock.MockProject
 import me.him188.kotlin.dynamic.delegation.compiler.backend.PluginIrGenerationExtension
 import me.him188.kotlin.dynamic.delegation.compiler.config.PluginConfigurationImpl
 import me.him188.kotlin.dynamic.delegation.compiler.diagnostics.DynamicDelegationCallChecker
+import me.him188.kotlin.dynamic.delegation.compiler.diagnostics.PersistentCallChecker
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -37,6 +38,7 @@ open class PluginComponentRegistrar @JvmOverloads constructor(
                 container.useInstance(
                     DynamicDelegationCallChecker { actualConfiguration[JVMConfigurationKeys.IR, false] }
                 )
+                container.useInstance(PersistentCallChecker())
             }
         })
         IrGenerationExtension.registerExtension(project, PluginIrGenerationExtension(ext))

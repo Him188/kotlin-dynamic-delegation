@@ -5,7 +5,8 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighter
 import com.intellij.openapi.options.colors.AttributesDescriptor
 import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
-import me.him188.kotlin.dynamic.delegation.idea.settings.DynamicDelegationHighlightingColors.BY_KEYWORD
+import me.him188.kotlin.dynamic.delegation.idea.settings.DynamicDelegationHighlightingColors.DYNAMIC_DELEGATION
+import me.him188.kotlin.dynamic.delegation.idea.settings.DynamicDelegationHighlightingColors.PERSISTENT
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
 import javax.swing.Icon
@@ -16,10 +17,13 @@ class HighlightingColorPage : ColorSettingsPage {
         val DEMO_TEXT = """
             interface I
             class C : I by dynamicDelegation(object : I {})
+            
+            fun foo(): Int = persistent { 1 }
     """.trimIndent()
 
         private val attributes: Array<AttributesDescriptor> = arrayOf(
-            AttributesDescriptor("Keyword 'by'", BY_KEYWORD)
+            AttributesDescriptor("Dynamic delegation keyword 'by'", DYNAMIC_DELEGATION),
+            AttributesDescriptor("Persistent 'persistent'", PERSISTENT),
         )
 
         private val tags = attributes.associate { it.displayName to it.key }

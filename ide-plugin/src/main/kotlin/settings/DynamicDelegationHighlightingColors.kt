@@ -5,5 +5,9 @@ import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
 
 object DynamicDelegationHighlightingColors {
     @JvmField
-    val BY_KEYWORD = TextAttributesKey.createTextAttributesKey("BY_KEYWORD", KotlinHighlightingColors.SMART_CAST_VALUE)
+    val DYNAMIC_DELEGATION =
+        TextAttributesKey.createTextAttributesKey("DYNAMIC_DELEGATION", KotlinHighlightingColors.SMART_CAST_VALUE)
+
+    @JvmField
+    val PERSISTENT = TextAttributesKey.createTextAttributesKey("PERSISTENT", KotlinHighlightingColors.SMART_CAST_VALUE)
 }

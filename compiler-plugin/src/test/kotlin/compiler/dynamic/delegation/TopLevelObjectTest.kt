@@ -1,7 +1,8 @@
 @file:Suppress("RemoveRedundantBackticks", "RedundantSuspendModifier", "MainFunctionReturnUnit")
 
-package compiler
+package compiler.dynamic.delegation
 
+import compiler.AbstractCompilerTest
 import org.junit.jupiter.api.Test
 import runFunction
 import kotlin.test.assertEquals

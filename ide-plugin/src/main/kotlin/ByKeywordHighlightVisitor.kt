@@ -8,7 +8,7 @@ import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import me.him188.kotlin.dynamic.delegation.compiler.backend.DynamicDelegationFqNames
+import me.him188.kotlin.dynamic.delegation.compiler.backend.DDFqNames
 import me.him188.kotlin.dynamic.delegation.idea.settings.DynamicDelegationHighlightingColors
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.inspections.findExistingEditor
@@ -28,7 +28,7 @@ class ByKeywordHighlightVisitor : HighlightVisitor {
         val fqn =
             entry.delegateExpression?.resolveToCall(bodyResolveMode = BodyResolveMode.PARTIAL_NO_ADDITIONAL)?.candidateDescriptor?.fqNameOrNull()
                 ?: return
-        if (!DynamicDelegationFqNames.isDynamicDelegation(fqn)) return
+        if (!DDFqNames.isDynamicDelegation(fqn)) return
 
         val node = entry.byKeywordNode
 
@@ -36,7 +36,7 @@ class ByKeywordHighlightVisitor : HighlightVisitor {
             HighlightInfo.newHighlightInfo(HighlightInfoType.INFORMATION)
                 .range(node.textRange)
                 .descriptionAndTooltip("Dynamic delegation")
-                .textAttributes(editor.colorsScheme.getAttributes(DynamicDelegationHighlightingColors.BY_KEYWORD))
+                .textAttributes(editor.colorsScheme.getAttributes(DynamicDelegationHighlightingColors.DYNAMIC_DELEGATION))
                 .create()
         )
     }

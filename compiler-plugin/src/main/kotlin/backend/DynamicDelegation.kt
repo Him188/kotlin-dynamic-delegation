@@ -17,11 +17,14 @@ data class DynamicDelegation(
     val wrapper: DynamicDelegationWrapper,
 )
 
-object DynamicDelegationFqNames {
-    val DEFAULT = FqName("me.him188.kotlin.dynamic.delegation.dynamicDelegation")
+object DDFqNames {
+    val DYNAMIC_DELEGATION = FqName("me.him188.kotlin.dynamic.delegation.dynamicDelegation")
+    val PERSISTENT = FqName("me.him188.kotlin.dynamic.delegation.persistent")
+    val LAZY_CLASS = FqName("kotlin.Lazy")
+    val LAZY_FUN = FqName("kotlin.lazy")
 
     fun isDynamicDelegation(name: FqName): Boolean {
-        return name == DEFAULT
+        return name == DYNAMIC_DELEGATION
     }
 }
 

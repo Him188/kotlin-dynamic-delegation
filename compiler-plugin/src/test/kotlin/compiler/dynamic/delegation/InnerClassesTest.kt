@@ -1,5 +1,6 @@
-package compiler
+package compiler.dynamic.delegation
 
+import compiler.AbstractCompilerTest
 import createInstance
 import org.junit.jupiter.api.Test
 import runFunction

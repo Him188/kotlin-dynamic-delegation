@@ -1,7 +1,7 @@
 package me.him188.kotlin.dynamic.delegation.compiler.diagnostics
 
 import com.intellij.psi.PsiElement
-import me.him188.kotlin.dynamic.delegation.compiler.backend.DynamicDelegationFqNames
+import me.him188.kotlin.dynamic.delegation.compiler.backend.DDFqNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
@@ -23,7 +23,7 @@ class DynamicDelegationCallChecker(
 ) : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         val fqn = resolvedCall.resultingDescriptor.fqNameSafe
-        if (fqn == DynamicDelegationFqNames.DEFAULT) {
+        if (fqn == DDFqNames.DYNAMIC_DELEGATION) {
             if (!isIr(reportOn)) {
                 context.trace.report(Errors.DYNAMIC_DELEGATION_REQUIRES_IR.on(reportOn))
                 return

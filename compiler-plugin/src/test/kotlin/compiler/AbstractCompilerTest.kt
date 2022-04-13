@@ -159,7 +159,7 @@ internal abstract class AbstractCompilerTest {
                 "import kotlin.test.*",
                 "import me.him188.kotlin.dynamic.delegation.*"
             )
-            val kotlinSources = kt.split(Companion.FILE_SPLITTER).mapIndexed { index, source ->
+            val kotlinSources = kt.split(FILE_SPLITTER).mapIndexed { index, source ->
                 when {
                     source.trim().startsWith("package") -> {
                         SourceFile.kotlin("TestData${index}.kt", run {

@@ -22,6 +22,9 @@ object Errors : DefaultErrorMessages.Extension {
     @JvmField
     var INCOMPATIBLE_PROPERTY_RECEIVER = DiagnosticFactory1.create<PsiElement, Name>(Severity.ERROR)
 
+    @JvmField
+    var UNSUPPORTED_BLOCK_BODY = DiagnosticFactory0.create<PsiElement>(Severity.ERROR)
+
 
     private val map = DiagnosticFactoryToRendererMap("JvmBlockingBridge").apply {
         put(
@@ -44,6 +47,11 @@ object Errors : DefaultErrorMessages.Extension {
             INCOMPATIBLE_PROPERTY_RECEIVER,
             "Property receiver is not compatible with type ''{0}''",
             Renderers.TO_STRING
+        )
+
+        put(
+            UNSUPPORTED_BLOCK_BODY,
+            "'persistent' is not allowed in block body.",
         )
     }
 
