@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
 
 plugins {
-    id("org.jetbrains.intellij") version "1.3.0"
+    id("org.jetbrains.intellij") version "1.5.3"
     kotlin("jvm")
     kotlin("plugin.serialization")
 }
@@ -52,9 +52,11 @@ tasks.withType<org.jetbrains.intellij.tasks.PatchPluginXmlTask> {
             
             The compiler plugin supports Gradle. Add the following code into build.gradle.kts:
             
+            <pre>
             plugins {
                 id("me.him188.kotlin-dynamic-delegation") version "VERSION"
             }
+            </pre>
             
             where VERSION can be found <a href="https://github.com/Him188/kotlin-dynamic-delegation/releases">here</a>, e.g. "0.1.1-160.1".
         """.trimIndent()
