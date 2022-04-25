@@ -25,7 +25,8 @@
         <externalSystemTaskNotificationListener
                 implementation="me.him188.kotlin.dynamic.delegation.idea.DynamicDelegationProjectImportListener"/>
         <colorSettingsPage implementation="me.him188.kotlin.dynamic.delegation.idea.settings.HighlightingColorPage"/>
-        <highlightVisitor implementation="me.him188.kotlin.dynamic.delegation.idea.ByKeywordHighlightVisitor"/>
+        <highlightVisitor
+                implementation="me.him188.kotlin.dynamic.delegation.idea.highlighting.DynamicDelegationHighlightVisitor"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
