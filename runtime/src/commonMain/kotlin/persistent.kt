@@ -2,6 +2,9 @@
 
 package me.him188.kotlin.dynamic.delegation
 
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+
 /**
  * Declares a *persistent* value that will be lazily initialized exactly once using [block] and used afterwards.
  *
@@ -17,4 +20,7 @@ package me.him188.kotlin.dynamic.delegation
  * override fun toString(): String = toString$t1.value
  * ```
  */
-public fun <R> persistent(block: () -> R): R = throw NotImplementedError("Implemented as intrinsic")
+public inline fun <R> persistent(block: () -> R): R {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) } // to enable relevant diagnostics
+    throw NotImplementedError("Implemented as intrinsic")
+}
