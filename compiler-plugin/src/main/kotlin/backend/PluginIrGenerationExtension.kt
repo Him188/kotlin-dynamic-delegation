@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.backend.common.ClassLoweringPass
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.ir.addChild
 import org.jetbrains.kotlin.backend.common.ir.copyTo
 import org.jetbrains.kotlin.backend.common.lower.parentsWithSelf
 import org.jetbrains.kotlin.backend.common.runOnFilePostfix
@@ -13,6 +14,7 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.assertCast
 import org.jetbrains.kotlin.ir.builders.declarations.addField
+import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irExprBody
@@ -102,13 +104,27 @@ class PersistentLoweringPass(
         val declarationContainer = container.parentsWithSelf.firstIsInstance<IrDeclarationContainer>()
         val propertyName = nextPropertyName(container, declarationContainer)
 
-        if (declarationContainer !is IrClass) return null
-
         val originTypeArgument = statement.getTypeArgument(0)!!
-        // private val fn$pers1: Lazy<T>
-        val field = declarationContainer.addField {
-            name = propertyName
-            type = lazyClassSymbol.typeWith(originTypeArgument)
+
+        val field = when (declarationContainer) {
+            is IrClass -> {
+                // private val fn$pers1: Lazy<T>
+                declarationContainer.addField {
+                    name = propertyName
+                    type = lazyClassSymbol.typeWith(originTypeArgument)
+                }
+            }
+            is IrFile -> {
+                pluginContext.irContext.irFactory.buildField {
+                    isStatic = true
+                    name = propertyName
+                    type = lazyClassSymbol.typeWith(originTypeArgument)
+                }.also { field ->
+                    field.parent = declarationContainer
+                    declarationContainer.addChild(field)
+                }
+            }
+            else -> return null
         }.apply {
             initializer = pluginContext.irContext.createIrBuilder(symbol).run {
                 //  = lazy { statement.call() }
@@ -120,7 +136,10 @@ class PersistentLoweringPass(
 
         // replace `persistent {  }` with `this.fn$pers1` (get field)
         return pluginContext.irContext.createIrBuilder(container.symbol).run {
-            val lazy = irGetField(irGet(container.dispatchReceiverParameter!!), field)
+            val lazy = irGetField(
+                container.dispatchReceiverParameter?.let(::irGet),
+                field
+            ) // IrFile doesn't need dispatch receiver
             irCall(lazyGetValueSymbol, dispatchReceiver = lazy)
         }
     }
