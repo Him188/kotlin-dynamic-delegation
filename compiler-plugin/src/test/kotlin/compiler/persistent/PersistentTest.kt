@@ -60,4 +60,58 @@ internal class PersistentTest : AbstractCompilerTest() {
             repeat(3) { assertEquals("value1", runStaticFunction<String>("a")) }
         }
     }
+
+    @Test
+    fun `dispatch receiver mapping`() = testJvmCompile(
+        """
+            @file:JvmName("MainKt")
+            class MessageChain(
+                private val values: List<String>
+            ) {
+                override fun toString(): String = persistent { values.joinToString() }
+            }
+
+            fun a() = MessageChain(listOf("1", "2")).toString()
+        """.trimIndent()
+    ) {
+        classLoader.loadClass("MainKt").run {
+            assertEquals("1, 2", runStaticFunction<String>("a"))
+        }
+    }
+
+    @Test
+    fun `type arguments`() = testJvmCompile(
+        """
+            @file:JvmName("MainKt")
+            class MessageChain<T>(
+                private val values: List<T>
+            ) {
+                fun get(): T = persistent { values.first() }
+            }
+
+            fun a() = MessageChain(listOf("1", "2")).get()
+        """.trimIndent()
+    ) {
+        classLoader.loadClass("MainKt").run {
+            assertEquals("1", runStaticFunction<Any>("a"))
+        }
+    }
+
+    @Test
+    fun `type arguments 2`() = testJvmCompile(
+        """
+            @file:JvmName("MainKt")
+            data class MessageChain<T>(
+                private val values: List<T>
+            ) {
+                fun get(): MessageChain<T> = persistent { this }
+            }
+
+            fun a() = MessageChain(listOf("1", "2")).toString()
+        """.trimIndent()
+    ) {
+        classLoader.loadClass("MainKt").run {
+            assertEquals("MessageChain(values=[1, 2])", runStaticFunction<Any>("a"))
+        }
+    }
 }

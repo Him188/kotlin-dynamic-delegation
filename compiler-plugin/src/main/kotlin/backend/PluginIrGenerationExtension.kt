@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.backend.common.runOnFilePostfix
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.assertCast
-import org.jetbrains.kotlin.ir.builders.declarations.addField
 import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irCall
@@ -22,15 +21,14 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
-import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrReturn
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 
@@ -71,6 +69,8 @@ class RemoveDelegateFieldInitializerPass(
 class PersistentLoweringPass(
     private val pluginContext: PluginGenerationContext,
 ) : BodyLoweringPass {
+    private val irContext get() = pluginContext.irContext
+
     private val persistentSymbols = pluginContext.irContext.referenceFunctions(DDFqNames.PERSISTENT)
     private val lazyClassSymbol = pluginContext.irContext.referenceClass(DDFqNames.LAZY_CLASS)!!
     private val lazyGetValueSymbol = lazyClassSymbol.getPropertyGetter("value")!!
@@ -102,36 +102,29 @@ class PersistentLoweringPass(
         if (container !is IrSimpleFunction) return null
 
         val declarationContainer = container.parentsWithSelf.firstIsInstance<IrDeclarationContainer>()
+        if (declarationContainer !is IrSymbolOwner) return null
+
         val propertyName = nextPropertyName(container, declarationContainer)
 
         val originTypeArgument = statement.getTypeArgument(0)!!
 
-        val field = when (declarationContainer) {
-            is IrClass -> {
-                // private val fn$pers1: Lazy<T>
-                declarationContainer.addField {
-                    name = propertyName
-                    type = lazyClassSymbol.typeWith(originTypeArgument)
-                }
-            }
-            is IrFile -> {
-                pluginContext.irContext.irFactory.buildField {
-                    isStatic = true
-                    name = propertyName
-                    type = lazyClassSymbol.typeWith(originTypeArgument)
-                }.also { field ->
-                    field.parent = declarationContainer
-                    declarationContainer.addChild(field)
-                }
-            }
-            else -> return null
-        }.apply {
-            initializer = pluginContext.irContext.createIrBuilder(symbol).run {
-                //  = lazy { statement.call() }
-                irExprBody(irCall(lazyFunSymbol).apply {
-                    putValueArgument(0, statement.getValueArgument(0)!!)
+        val field = pluginContext.irContext.irFactory.buildField {
+            isStatic = declarationContainer is IrFile
+            name = propertyName
+            type = lazyClassSymbol.typeWith(originTypeArgument)
+        }.also { field ->
+            field.parent = declarationContainer
+            declarationContainer.addChild(field)
+        }
+
+        field.initializer = pluginContext.irContext.createIrBuilder(field.symbol).run {
+            //  = lazy { statement.call() }
+            irExprBody(irCall(lazyFunSymbol).apply {
+                val originDispatchReceiverType = container.dispatchReceiverParameter?.type
+                putValueArgument(0, statement.getValueArgument(0)!!.apply {
+                    transformDispatchReceivers(declarationContainer, field, originDispatchReceiverType)
                 })
-            }
+            })
         }
 
         // replace `persistent {  }` with `this.fn$pers1` (get field)
@@ -142,6 +135,25 @@ class PersistentLoweringPass(
             ) // IrFile doesn't need dispatch receiver
             irCall(lazyGetValueSymbol, dispatchReceiver = lazy)
         }
+    }
+
+    private fun IrExpression.transformDispatchReceivers(
+        declarationContainer: IrDeclarationContainer,
+        field: IrField,
+        originDispatchReceiverType: IrType?
+    ) {
+        if (declarationContainer !is IrClass) return
+        val builder = pluginContext.irContext.createIrBuilder(field.symbol)
+        val newDispatchReceiver = declarationContainer.thisReceiver ?: return
+        transformChildrenVoid(object : IrElementTransformerVoid() {
+            override fun visitGetValue(expression: IrGetValue): IrExpression {
+                if (expression.type == originDispatchReceiverType) {
+                    return builder.irGet(newDispatchReceiver)
+                }
+
+                return super.visitGetValue(expression)
+            }
+        })
     }
 
     private fun nextPropertyName(container: IrDeclaration, declarationContainer: IrDeclarationContainer): Name {

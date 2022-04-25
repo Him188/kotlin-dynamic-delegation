@@ -8,9 +8,9 @@ fun main() {
     //
 
     //
-    dynamicDelegation {
-        object : I {}
-    }
+//    dynamicDelegation {
+//        object : I {}
+//    }
 }
 
 interface TestClass {
@@ -21,4 +21,4 @@ class IncompatibleClass {
     val refined: TestClass get() = error("")
 }
 
-class CombinedMessage : TestClass by dynamicDelegation(IncompatibleClass::refined)
+//class CombinedMessage : TestClass by dynamicDelegation(IncompatibleClass::refined)
