@@ -2,9 +2,11 @@
 
 Kotlin compiler plugin that allows class delegation to be dynamic like property delegations.
 
-## What can this plugin do
+## Features
 
-It provides a function
+### Dynamic Delegations
+
+The plugin provides:
 
 ```kotlin
 public fun <R> dynamicDelegation(value: () -> R): R =
@@ -45,6 +47,21 @@ override fun getResult(): Int = getInstanceFromOtherPlaces().getResult()
 
 So the delegated instance can be changed.
 
+### Using Lazy In Functions
+
+Functions can also be 'lazy' by making a value lazy and persistent.
+
+```kotlin
+override fun toString(): String = persistent { this.joinToString() } // initialize lazily once and use afterwards.
+```
+
+is the same as
+
+```kotlin
+private val toStringTemp by lazy { this.joinToString() }
+override fun toString(): String = toStringTemp
+```
+
 ## Using the plugin
 
 build.gradle.kts
@@ -55,12 +72,14 @@ plugins {
 }
 ```
 
+The plugin adds a 'compileOnly' dependency 'me.him188:kotlin-dynamic-delegation-runtime'.
+
 See VERSION from [releases](https://github.com/Him188/kotlin-dynamic-delegation/releases)
 
-## Installing IntelliJ plugin
+## Installing IntelliJ IDEA plugin
 
-Plugin for IntelliJ IDEA is provided to help writing dynamic delegations. It provides various inspections that report
-before compiling the code.
+IDEA plugin can help to edit code and to report errors before compiling the code. By seeing the type cast hint(see
+picture below), you will know, without compiling, that your code with dynamic delegations will work.
 
 Plugin Marketplace Page: https://plugins.jetbrains.com/plugin/18219-kotlin-dynamic-delegation
 
