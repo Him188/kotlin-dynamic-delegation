@@ -2,7 +2,9 @@ package me.him188.kotlin.dynamic.delegation.compiler.diagnostics
 
 import com.intellij.psi.PsiElement
 import me.him188.kotlin.dynamic.delegation.compiler.backend.DDFqNames
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
@@ -25,23 +27,23 @@ class PersistentCallChecker : CallChecker {
                 return
             }
 
-            val body = lambda.getLambdaExpression()?.bodyExpression ?: return
-            checkLambdaBody(body, reportOn)
+//            val body = lambda.getLambdaExpression()?.bodyExpression ?: return
+//            checkLambdaBody(containingFunction, body, reportOn)
         }
     }
 
-    private fun checkLambdaBody(body: KtBlockExpression, reportOn: PsiElement) {
-        for (statement in body.statements) {
-            statement.accept(object : KtVisitorVoid() {
-                override fun visitElement(element: PsiElement) {
-                    element.acceptChildren(this)
-                }
-
-                override fun visitPropertyAccessor(accessor: KtPropertyAccessor) {
-                    super.visitPropertyAccessor(accessor)
-                }
-            })
-        }
-    }
+//    private fun checkLambdaBody(containingFunction: KtFunction, body: KtBlockExpression, reportOn: PsiElement) {
+//        for (statement in body.statements) {
+//            statement.accept(object : KtVisitorVoid() {
+//                override fun visitElement(element: PsiElement) {
+//                    element.acceptChildren(this)
+//                }
+//
+//                override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
+//                    super.visitSimpleNameExpression(expression)
+//                }
+//            })
+//        }
+//    }
 }
 

@@ -28,6 +28,8 @@ object Errors : DefaultErrorMessages.Extension {
     @JvmField
     var UNSUPPORTED_BODY = DiagnosticFactory0.create<PsiElement>(Severity.ERROR)
 
+//    @JvmField
+//    var INACCESSIBLE_SYMBOL = DiagnosticFactory0.create<PsiElement>(Severity.ERROR)
 
     private val map = DiagnosticFactoryToRendererMap("DynamicDelegation").apply {
         put(
