@@ -25,8 +25,11 @@ object Errors : DefaultErrorMessages.Extension {
     @JvmField
     var UNSUPPORTED_BLOCK_BODY = DiagnosticFactory0.create<PsiElement>(Severity.ERROR)
 
+    @JvmField
+    var UNSUPPORTED_BODY = DiagnosticFactory0.create<PsiElement>(Severity.ERROR)
 
-    private val map = DiagnosticFactoryToRendererMap("JvmBlockingBridge").apply {
+
+    private val map = DiagnosticFactoryToRendererMap("DynamicDelegation").apply {
         put(
             COMPILER_PLUGIN_NOT_ENABLED,
             "Dynamic delegation compiler plugin is not applied to the module, so this function would not be processed and will cause NotImplementedError in runtime. " +
@@ -52,6 +55,11 @@ object Errors : DefaultErrorMessages.Extension {
         put(
             UNSUPPORTED_BLOCK_BODY,
             "'persistent' is not allowed in block body.",
+        )
+
+        put(
+            UNSUPPORTED_BODY,
+            "'persistent' must directly accept a lambda.",
         )
     }
 
