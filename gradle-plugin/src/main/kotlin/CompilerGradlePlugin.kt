@@ -48,7 +48,7 @@ public open class CompilerGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 if (kotlin.runCatching { target.extensions.getByType(KotlinJvmProjectExtension::class.java) }.isSuccess) {
                     // when JVM
                     target.dependencies.add(
-                        "implementation",
+                        "compileOnly",
                         "${BuildConfig.GROUP_ID}:${BuildConfig.ARTIFACT_ID_RUNTIME}:${BuildConfig.VERSION}"
                     )
                     target.repositories.mavenCentral()
@@ -57,7 +57,7 @@ public open class CompilerGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 if (kotlin.runCatching { target.extensions.getByType(KotlinJsProjectExtension::class.java) }.isSuccess) {
                     // when JS
                     target.dependencies.add(
-                        "implementation",
+                        "compileOnly",
                         "${BuildConfig.GROUP_ID}:${BuildConfig.ARTIFACT_ID_RUNTIME}:${BuildConfig.VERSION}"
                     )
                     target.repositories.mavenCentral()
