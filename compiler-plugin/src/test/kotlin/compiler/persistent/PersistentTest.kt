@@ -18,7 +18,7 @@ internal class PersistentTest : AbstractCompilerTest() {
         """.trimIndent()
     ) {
         classLoader.loadClass("Main").createInstance().run {
-            repeat(3) { assertEquals("value1", runFunction<String>("a")) }
+            repeat(3) { assertEquals("constant", runFunction<String>("a")) }
         }
     }
 
