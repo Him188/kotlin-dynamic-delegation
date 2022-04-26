@@ -26,6 +26,10 @@ object DDFqNames {
     fun isDynamicDelegation(name: FqName): Boolean {
         return name == DYNAMIC_DELEGATION
     }
+
+    fun isCallingPersistent(name: FqName): Boolean {
+        return name == PERSISTENT
+    }
 }
 
 fun IrField.isDynamicDelegationField(dynamicDelegationSymbols: Collection<IrSymbol>): Boolean {
