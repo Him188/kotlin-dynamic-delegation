@@ -83,16 +83,14 @@ class PersistentLoweringPass(
         }
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
-        for (statement in irBody.statements) {
-            irBody.transform(object : IrElementTransformerVoid() {
-                override fun visitCall(expression: IrCall): IrExpression {
-                    if (expression.symbol !in persistentSymbols) {
-                        return expression
-                    }
-                    return processCall(expression, container) ?: expression
+        irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
+            override fun visitCall(expression: IrCall): IrExpression {
+                if (expression.symbol !in persistentSymbols) {
+                    return expression
                 }
-            }, null)
-        }
+                return processCall(expression, container) ?: expression
+            }
+        })
     }
 
     // statement is calling `persistent`
