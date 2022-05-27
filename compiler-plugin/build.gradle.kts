@@ -18,6 +18,7 @@ dependencies compileOnly@{
 }
 
 dependencies tests@{
+    testImplementation(kotlin("test"))
     testImplementation(project(":kotlin-dynamic-delegation"))
 
     testImplementation(kotlin("reflect"))
@@ -26,7 +27,10 @@ dependencies tests@{
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}") // for debugger
     //testImplementation("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}")
 
-    testImplementation(kotlin("test-junit5"))
+    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.9-alpha01") {
+        exclude("org.jetbrains.kotlin", "kotlin-annotation-processing-embeddable")
+    }
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:1.7.0-RC")
 
     testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.8")
     testImplementation("org.assertj:assertj-core:3.22.0")

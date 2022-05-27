@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.backend.common.lower.parentsWithSelf
 import org.jetbrains.kotlin.backend.common.runOnFilePostfix
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.assertCast
 import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irCall
@@ -201,7 +200,7 @@ class DynamicDelegationLoweringPass(
     private fun generateDynamicDelegationWrapper(field: IrField): DynamicDelegationWrapper {
         fun extractActualCall(): IrExpression {
             // initializer
-            return field.initializer?.expression?.assertCast<IrCall>()?.getValueArgument(0)
+            return (field.initializer?.expression as IrCall?)?.getValueArgument(0)
                 ?: error("Could not find an initializer for DELEGATE field '${field.render()}'.")
         }
 
@@ -241,7 +240,7 @@ class DynamicExtensionClassTransformer(
                 ?: return super.visitDeclaration(declaration)
 
             val delegateCall = when (val expr = declaration.body?.statements?.single()) {
-                is IrReturn -> expr.value.assertCast()
+                is IrReturn -> expr.value as IrCall
                 is IrCall -> expr
                 null -> return super.visitDeclaration(declaration)
                 else -> error("Unsupported expr: ${expr::class.qualifiedName} $expr")
