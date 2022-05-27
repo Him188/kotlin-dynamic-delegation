@@ -11,7 +11,6 @@ plugins {
     id("io.codearte.nexus-staging") version "0.22.0"
     id("java")
     id("com.github.johnrengelman.shadow") version "7.1.0" apply false
-    id("com.github.gmazzo.buildconfig") version "3.0.3" apply false
 }
 
 allprojects {

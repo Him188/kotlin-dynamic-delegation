@@ -3,7 +3,7 @@ plugins {
     kotlin("kapt")
     id("java-gradle-plugin")
     id("com.gradle.plugin-publish")
-    id("com.github.gmazzo.buildconfig")
+    id("com.github.gmazzo.buildconfig") version "3.0.3"
     `maven-publish`
 }
 
