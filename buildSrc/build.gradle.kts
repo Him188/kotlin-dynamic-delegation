@@ -9,8 +9,8 @@ repositories {
 
 kotlin {
     sourceSets.all {
-        languageSettings.useExperimentalAnnotation("kotlin.Experimental")
-        languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+        languageSettings.optIn("kotlin.Experimental")
+        languageSettings.optIn("kotlin.RequiresOptIn")
     }
 }
 
