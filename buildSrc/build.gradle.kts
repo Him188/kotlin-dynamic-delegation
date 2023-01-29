@@ -17,6 +17,7 @@ kotlin {
 dependencies {
     compileOnly(gradleApi())
     api("org.jetbrains.kotlin:kotlin-gradle-plugin:${version("kotlin")}")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.0")
 
     compileOnly("com.github.jengelman.gradle.plugins:shadow:6.0.0")
 }

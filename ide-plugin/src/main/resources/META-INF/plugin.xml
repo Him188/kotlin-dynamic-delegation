@@ -17,7 +17,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.kotlin</depends>
 
-    <idea-version since-build="221.0"/>
+    <idea-version since-build="223.0" until-build="231.*"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <moduleService
