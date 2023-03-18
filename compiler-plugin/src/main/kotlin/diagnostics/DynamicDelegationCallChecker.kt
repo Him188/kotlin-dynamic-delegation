@@ -18,17 +18,10 @@ import org.jetbrains.kotlin.resolve.calls.util.getType
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
-class DynamicDelegationCallChecker(
-    private val isIr: (PsiElement) -> Boolean,
-) : CallChecker {
+class DynamicDelegationCallChecker : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         val fqn = resolvedCall.resultingDescriptor.fqNameSafe
-        if (fqn == DDFqNames.DYNAMIC_DELEGATION) {
-            if (!isIr(reportOn)) {
-                context.trace.report(Errors.DYNAMIC_DELEGATION_REQUIRES_IR.on(reportOn))
-                return
-            }
-
+        if (fqn == DDFqNames.DYNAMIC_DELEGATION.asSingleFqName()) {
             val element = resolvedCall.call.callElement
             if (element.parents.filterNot { it is KtParenthesizedExpression }
                     .firstOrNull() !is KtDelegatedSuperTypeEntry) {

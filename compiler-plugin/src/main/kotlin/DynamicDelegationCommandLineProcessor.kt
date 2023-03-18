@@ -5,8 +5,10 @@ import me.him188.kotlin.dynamic.delegation.compiler.PluginCompilerConfigurationK
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
+@OptIn(ExperimentalCompilerApi::class)
 @AutoService(CommandLineProcessor::class)
 class DynamicDelegationCommandLineProcessor : CommandLineProcessor {
     companion object {

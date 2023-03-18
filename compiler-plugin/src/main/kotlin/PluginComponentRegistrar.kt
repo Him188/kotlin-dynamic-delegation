@@ -1,47 +1,47 @@
 package me.him188.kotlin.dynamic.delegation.compiler
 
 import com.google.auto.service.AutoService
-import com.intellij.mock.MockProject
 import me.him188.kotlin.dynamic.delegation.compiler.backend.PluginIrGenerationExtension
 import me.him188.kotlin.dynamic.delegation.compiler.config.PluginConfigurationImpl
 import me.him188.kotlin.dynamic.delegation.compiler.diagnostics.DynamicDelegationCallChecker
 import me.him188.kotlin.dynamic.delegation.compiler.diagnostics.PersistentCallChecker
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.platform.TargetPlatform
 
-@AutoService(ComponentRegistrar::class)
+@OptIn(ExperimentalCompilerApi::class)
+@AutoService(CompilerPluginRegistrar::class)
 open class PluginComponentRegistrar @JvmOverloads constructor(
     private val overrideConfigurations: CompilerConfiguration? = null,
-) : ComponentRegistrar {
+) : CompilerPluginRegistrar() {
+    override val supportsK2: Boolean
+        get() = false
 
-    override fun registerProjectComponents(
-        project: MockProject,
-        configuration: CompilerConfiguration,
-    ) {
+    override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         val actualConfiguration = overrideConfigurations ?: configuration
 
         val ext = actualConfiguration.createPluginConfig()
 
-        StorageComponentContainerContributor.registerExtension(project, object : StorageComponentContainerContributor {
+        StorageComponentContainerContributor.registerExtension(object : StorageComponentContainerContributor {
             override fun registerModuleComponents(
                 container: StorageComponentContainer,
                 platform: TargetPlatform,
                 moduleDescriptor: ModuleDescriptor,
             ) {
                 container.useInstance(
-                    DynamicDelegationCallChecker { actualConfiguration[JVMConfigurationKeys.IR, false] }
+                    DynamicDelegationCallChecker()
                 )
                 container.useInstance(PersistentCallChecker())
             }
         })
-        IrGenerationExtension.registerExtension(project, PluginIrGenerationExtension(ext))
+        IrGenerationExtension.registerExtension(PluginIrGenerationExtension(ext))
+
     }
 }
 

@@ -9,7 +9,10 @@ import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.name.CallableId
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 
 
 data class DynamicDelegation(
@@ -18,17 +21,26 @@ data class DynamicDelegation(
 )
 
 object DDFqNames {
-    val DYNAMIC_DELEGATION = FqName("me.him188.kotlin.dynamic.delegation.dynamicDelegation")
-    val PERSISTENT = FqName("me.him188.kotlin.dynamic.delegation.persistent")
-    val LAZY_CLASS = FqName("kotlin.Lazy")
-    val LAZY_FUN = FqName("kotlin.lazy")
+    val DYNAMIC_DELEGATION = CallableId(
+        packageName = FqName("me.him188.kotlin.dynamic.delegation"),
+        callableName = Name.identifier("dynamicDelegation"),
+    )
+    val PERSISTENT = CallableId(
+        packageName = FqName("me.him188.kotlin.dynamic.delegation"),
+        callableName = Name.identifier("persistent"),
+    )
+    val LAZY_CLASS = ClassId.topLevel(FqName("kotlin.Lazy"))
+    val LAZY_FUN = CallableId(
+        packageName = FqName("kotlin"),
+        callableName = Name.identifier("lazy")
+    )
 
     fun isDynamicDelegation(name: FqName): Boolean {
-        return name == DYNAMIC_DELEGATION
+        return name == DYNAMIC_DELEGATION.asSingleFqName()
     }
 
     fun isCallingPersistent(name: FqName): Boolean {
-        return name == PERSISTENT
+        return name == PERSISTENT.asSingleFqName()
     }
 }
 

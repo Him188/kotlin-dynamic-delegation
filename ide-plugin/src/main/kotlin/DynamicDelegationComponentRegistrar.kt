@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.platform.TargetPlatform
 
 class DynamicDelegationComponentRegistrar : StorageComponentContainerContributor {
@@ -14,6 +13,6 @@ class DynamicDelegationComponentRegistrar : StorageComponentContainerContributor
         platform: TargetPlatform,
         moduleDescriptor: ModuleDescriptor
     ) {
-        container.useInstance(DynamicDelegationCallChecker { it.module?.isIr != false })
+        container.useInstance(DynamicDelegationCallChecker())
     }
 }

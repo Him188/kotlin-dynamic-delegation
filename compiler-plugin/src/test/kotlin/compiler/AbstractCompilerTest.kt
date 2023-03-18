@@ -4,6 +4,7 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import me.him188.kotlin.dynamic.delegation.compiler.PluginComponentRegistrar
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JvmTarget
 import java.io.File
@@ -30,13 +31,6 @@ internal abstract class AbstractCompilerTest {
         fun kotlinSource(@Language("kt") code: String) {
             this.kotlinSources.add(code)
         }
-
-        fun KotlinCompilation.useOldBackend() {
-            useIR = false
-            useOldBackend = true
-        }
-
-        fun useOldBackend() = compilation { useOldBackend() }
 
         fun compilation(block: KotlinCompilation.() -> Unit) {
             compilationActions.add(block)
@@ -113,11 +107,14 @@ internal abstract class AbstractCompilerTest {
     }
 
     fun analyzeKotlinCompilationMessages(messages: String): KotlinCompilationMessages {
-        val matching = Regex("""([ew]): ([a-zA-Z0-9/.:\\\-_+\w ]+)?: \(([0-9]+?, [0-9]+?)\): (.+)""".trimMargin())
+        @Suppress("RegExpRedundantEscape")
+        val matching =
+            Regex("""([ew]): (?:file:\/\/)?([a-zA-Z0-9\/.:\\\-_+\w ]+)?:([0-9]+?):([0-9]+?) (.+)""".trimMargin())
         return matching.findAll(messages)
             .map { it.destructured }
-            .map { (kind, file, location, message) ->
-                MessageLine(MessageLine.Kind.fromStringOrNull(kind), message, file, location)
+            .map { (kind, file, locationLine, locationChar, message) ->
+
+                MessageLine(MessageLine.Kind.fromStringOrNull(kind), message, file, "$locationLine, $locationChar")
             }
             .toList()
             .let {
@@ -168,6 +165,7 @@ internal abstract class AbstractCompilerTest {
                                 .joinToString("\n")
                         })
                     }
+
                     source.trim().startsWith("@file:") -> {
                         SourceFile.kotlin("TestData${index}.kt", run {
                             source.trim().trimIndent().lines().mapTo(LinkedList()) { it }
@@ -175,6 +173,7 @@ internal abstract class AbstractCompilerTest {
                                 .joinToString("\n")
                         })
                     }
+
                     else -> {
                         SourceFile.kotlin(
                             name = "TestData${index}.kt",
@@ -195,8 +194,10 @@ internal abstract class AbstractCompilerTest {
                         }
                     )
 
-                    compilerPlugins =
+                    @OptIn(ExperimentalCompilerApi::class)
+                    compilerPluginRegistrars =
                         listOf(PluginComponentRegistrar(overrideConfigurations = overrideCompilerConfiguration))
+
                     verbose = false
 
                     this.jvmTarget = jvmTarget.description

@@ -27,12 +27,11 @@ dependencies tests@{
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}") // for debugger
     //testImplementation("org.jetbrains.kotlin:kotlin-compiler:${Versions.kotlin}")
 
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.9-alpha01") {
+    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.5.0") {
         exclude("org.jetbrains.kotlin", "kotlin-annotation-processing-embeddable")
     }
-    testRuntimeOnly("org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:1.7.0-RC")
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:1.8.0")
 
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.8")
     testImplementation("org.assertj:assertj-core:3.22.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")

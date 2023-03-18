@@ -15,7 +15,7 @@ class PersistentCallChecker : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         val containingFunction =
             resolvedCall.call.callElement.parents.filterIsInstance<KtFunction>().firstOrNull() ?: return
-        if (resolvedCall.resultingDescriptor.fqNameSafe != DDFqNames.PERSISTENT) return
+        if (resolvedCall.resultingDescriptor.fqNameSafe != DDFqNames.PERSISTENT.asSingleFqName()) return
 
         val bodyExpression = containingFunction.bodyExpression ?: return
         if (bodyExpression is KtBlockExpression) {

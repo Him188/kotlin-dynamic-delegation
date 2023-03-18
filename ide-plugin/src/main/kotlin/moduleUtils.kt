@@ -13,10 +13,10 @@ import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.KotlinFacetSettings
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.idea.base.projectStructure.unwrapModuleSourceInfo
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
-import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
-import org.jetbrains.kotlin.idea.util.module
 
 class DynamicDelegationModuleCacheService {
     var compilerEnabled: Boolean = true
@@ -30,7 +30,7 @@ val Module.pluginConfiguration
     get() = useCacheOrInit { it.config } ?: PluginConfiguration.Default
 
 val PsiElement.bridgeConfiguration
-    get() = module?.pluginConfiguration ?: PluginConfiguration.Default
+    get() = this.module?.pluginConfiguration ?: PluginConfiguration.Default
 
 val Module.isIr
     get() = useCacheOrInit { it.isIr } ?: true
@@ -71,6 +71,7 @@ fun ModuleDescriptor.isIr(): Boolean {
             if (compilerArguments.useIR) return true
             if (compilerArguments.useOldBackend) return false
         }
+
         else -> {
             return true
         }

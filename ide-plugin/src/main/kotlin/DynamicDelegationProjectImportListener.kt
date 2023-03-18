@@ -4,9 +4,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.util.ProgressIndicatorUtils
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
+import com.intellij.openapi.project.modules
 
 class DynamicDelegationProjectImportListener : Disposable, ExternalSystemTaskNotificationListenerAdapter() {
     override fun dispose() {
@@ -17,8 +17,8 @@ class DynamicDelegationProjectImportListener : Disposable, ExternalSystemTaskNot
         if (id.type == ExternalSystemTaskType.RESOLVE_PROJECT) {
             // At this point changes might be still not applied to project structure yet.
             val project = id.findResolvedProject() ?: return
-            ProgressIndicatorUtils.runUnderDisposeAwareIndicator(this) {
-                for (module in project.allModules()) {
+            BackgroundTaskUtil.runUnderDisposeAwareIndicator(this) {
+                for (module in project.modules.asList()) {
                     module.getServiceIfCreated(DynamicDelegationModuleCacheService::class.java)?.initialized = false
                 }
             }

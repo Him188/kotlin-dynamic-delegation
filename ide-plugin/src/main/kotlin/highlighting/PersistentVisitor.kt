@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement
 import me.him188.kotlin.dynamic.delegation.compiler.backend.DDFqNames
 import me.him188.kotlin.dynamic.delegation.idea.settings.DynamicDelegationHighlightingColors
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
-import org.jetbrains.kotlin.idea.inspections.findExistingEditor
+import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
