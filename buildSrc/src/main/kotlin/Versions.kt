@@ -1,7 +1,7 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
 object Versions {
-    const val project = "0.3.0-180.1"
+    const val project = "0.4.0-180.1"
     const val idePlugin = "223-$project-1"
 
     const val intellij = "2022.3"
