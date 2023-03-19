@@ -28,7 +28,7 @@ interface CommandManager {
 }
 ```
 
-Suppose then you realized the CommandManager instance should be static (statically initialized or singleton).
+Suppose then you realized the CommandManager instance should not be static (statically initialized or singleton).
 You changed the CommandManager to this because you cannot remove code that have been published to the public:
 
 ```kotlin
