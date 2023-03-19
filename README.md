@@ -13,39 +13,79 @@ public fun <R> dynamicDelegation(value: () -> R): R =
     throw NotImplementedError("Implemented as intrinsic")
 ```
 
-This function is implemented by the compiler. You can call this function on class delegation as follows:
+This function is implemented by the compiler. Here is an example.
+
+Suppose this is your existing code and is published to the public:
 
 ```kotlin
-interface TestClass {
-    fun getResult(): Int
-}
-object TestObject : TestClass by (dynamicDelegation { getInstanceFromOtherPlaces() })
+interface CommandManager {
+    val commands: List<Command>
+    fun register(command: Command)
 
-var called = 0
-fun getInstanceFromOtherPlaces(): TestClass {
-    val v = called++
-    return object : TestClass {
-        override fun getResult(): Int = v // static value here!
-    }
-}
-
-class Test {
-    @Test
-    fun test() {
-        assertEquals(0, TestObject.getResult())
-        assertEquals(1, TestObject.getResult())
-        assertEquals(2, TestObject.getResult())
+    companion object : CommandManager {
+        // implement CommandManager
     }
 }
 ```
 
-The compiler generates `TestObject.getResult()` as follows:
+Suppose then you realized the CommandManager instance should be static (statically initialized or singleton).
+You changed the CommandManager to this because you cannot remove code that have been published to the public:
 
 ```kotlin
-override fun getResult(): Int = getInstanceFromOtherPlaces().getResult()
+interface CommandManager {
+    val commands: List<Command>
+    fun register(command: Command)
+
+    companion object : CommandManager {
+        private val instance by lazy { CommandManagerImpl() }
+
+        // You must manually delegate all calls to instance
+        override val commands: List<Command> get() = instance.commands
+        override fun register(command: Command): Unit = instance.register(command)
+    }
+}
 ```
 
-So the delegated instance can be changed.
+Now with Kotlin Dynamic Delegation, you can do instead:
+
+```kotlin
+interface CommandManager {
+    val commands: List<Command>
+    fun register(command: Command)
+
+    companion object : CommandManager by (dynamicDelegation(Companion::instance)) {
+        private val instance by lazy { CommandManagerImpl() }
+
+        // All delegates will be generated automatically
+    }
+}
+```
+
+Alternatively, it's also possible to do this:
+
+```kotlin
+interface CommandManager {
+    val commands: List<Command>
+    fun register(command: Command)
+
+    companion object : CommandManager by (dynamicDelegation { getCommandManagerImpl() }) {
+        // All delegates will be generated automatically
+    }
+}
+
+private fun getCommandManagerImpl(): CommandManager {
+    // This is called to get actual CommandManager instance when a member inside CommandManager.Companion is called.
+
+    if (!someChecks()) {
+        error("It's not the time to call CommandManager!")
+    }
+    if (someOtherChecks()) {
+        currentInstance = CommandManagerImpl() // Possible to update delegated instance
+    }
+    return currentInstance
+}
+private var currentInstance: CommandManager = CommandManagerImpl()
+```
 
 ### Using Lazy In Functions
 
@@ -72,7 +112,27 @@ plugins {
 }
 ```
 
-The plugin adds a 'compileOnly' dependency 'me.him188:kotlin-dynamic-delegation-runtime'.
+You also need to add a 'compileOnly' dependency 'me.him188:kotlin-dynamic-delegation-runtime':
+
+For JVM projects:
+
+```kotlin
+dependencies {
+    implementation("me.him188:kotlin-dynamic-delegation:VERSION")
+}
+```
+
+For MPP, adding to `commonMain` would automatically add for all targets:
+
+```kotlin
+kotlin.sourceSets {
+    commonMain {
+        dependencies {
+            implementation("me.him188:kotlin-dynamic-delegation:VERSION")
+        }
+    }
+}
+```
 
 See VERSION from [releases](https://github.com/Him188/kotlin-dynamic-delegation/releases)
 
